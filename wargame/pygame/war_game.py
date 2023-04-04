@@ -87,7 +87,7 @@ def load_image(name, colorkey=None, scale=1):
 
 class Target(pygame.sprite.Sprite):
     def __init__(self):
-        pygame.sprite.Sprite.__init__(self)  # call Sprite initializer
+        pygame.sprite.Sprite.__init__(self)
         self.image, self.rect = load_image("target.png", -1, 0.1)
         screen = pygame.display.get_surface()
         self.area = screen.get_rect()
@@ -102,7 +102,7 @@ class Target(pygame.sprite.Sprite):
 
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, left, top):
-        pygame.sprite.Sprite.__init__(self)  # call Sprite initializer
+        pygame.sprite.Sprite.__init__(self)
         self.image, self.rect = load_image("enemy.png", -1, 0.08)
         screen = pygame.display.get_surface()
         self.area = screen.get_rect()
