@@ -97,6 +97,21 @@ class Target(pygame.sprite.Sprite):
         return self.rect.left, self.rect.top
 
 
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, left, top):
+        pygame.sprite.Sprite.__init__(self)  # call Sprite initializer
+        self.image, self.rect = load_image("enemy.png", -1, 0.08)
+        screen = pygame.display.get_surface()
+        self.area = screen.get_rect()
+        self.rect.topleft = left, top
+
+        # NOTE: drag and drop
+        self.clicked = False
+
+    def location(self):
+        return self.rect.left, self.rect.top
+
+
 class Soldier(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)  # call Sprite initializer
@@ -134,6 +149,23 @@ class Soldier(pygame.sprite.Sprite):
         return self.rect.left, self.rect.top
 
 
+def draw_enemies(count):
+    enemies = []
+
+    left = 5
+    top = 5
+    img_width = pygame.image.load("./wargame/pygame/data/enemy.png").get_width() * 0.08
+
+    for i in range(count):
+        enemies.append(Enemy(left + (img_width + 2) * i, top))
+
+    return enemies
+
+
+# NOTE: Drag and Drop
+key_list = pygame.sprite.Group()
+
+
 def start():
     pygame.display.set_caption("War")
     pygame.mouse.set_visible(False)
@@ -149,7 +181,9 @@ def start():
 
     soldier = Soldier()
     target = Target()
+    enemies = draw_enemies(slider_value)
     allsprites = pygame.sprite.RenderPlain((soldier, target))
+    enemy_group = pygame.sprite.Group((enemies[0], enemies[1]))
     create_buttons(550, 10, 120, 50, font, "Quit", 580, 15)
     going = True
     direction = -1
@@ -172,11 +206,31 @@ def start():
                     direction = 2
                 elif event.key == pygame.K_RIGHT:
                     direction = 3
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                pos = pygame.mouse.get_pos()
+                x = pos[0]
+                y = pos[1]
+                if event.button == 1:
+                    for enemy in enemy_group:
+                        if enemy.rect.collidepoint(pos):
+                            enemy.clicked = True
+            elif event.type == pygame.MOUSEBUTTONUP:
+                for enemy in enemy_group:
+                    enemy.clicked = False
+
+        for enemy in enemy_group:
+            if enemy.clicked == True:
+                pos = pygame.mouse.get_pos()
+                enemy.rect.topleft = pos[0] - (enemy.rect.width / 2), pos[1] - (
+                    enemy.rect.height / 2
+                )
+
         allsprites.update(direction)
 
         # Draw Everything
         DISPLAYSURF.blit(background, (0, 0))
         allsprites.draw(DISPLAYSURF)
+        enemy_group.draw(DISPLAYSURF)
         pygame.display.flip()
 
     pygame.quit()
