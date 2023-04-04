@@ -115,20 +115,24 @@ class Enemy(pygame.sprite.Sprite):
 class Soldier(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)  # call Sprite initializer
-        self.image, self.rect = load_image("soldier.png", -1, 0.1)
+        self.image, self.rect = load_image("soldier.png", -1, 0.035)
         screen = pygame.display.get_surface()
         self.area = screen.get_rect()
         self.rect.topleft = 10, 90
         self.move = 18
+        self.right_facing = True
 
     def update(self, direction):
-        """walk or spin, depending on the monkeys state"""
-        # print("in update,", direction)
+        if direction == 2 and self.right_facing == True:
+            self.image = pygame.transform.flip(self.image, True, False)
+            self.right_facing = False
+        if direction == 3 and self.right_facing == False:
+            self.image = pygame.transform.flip(self.image, True, False)
+            self.right_facing = True
         if direction != -1:
             self._walk(direction)
 
     def _walk(self, direction):
-        """move the monkey across the screen, and turn at the ends"""
         newpos = self.rect.move((0, 0))
         if direction == 0:  # UP
             if self.rect.top != self.area.top:
@@ -168,7 +172,7 @@ key_list = pygame.sprite.Group()
 
 def start():
     pygame.display.set_caption("War")
-    pygame.mouse.set_visible(False)
+    pygame.mouse.set_visible(True)
 
     # Create The Background
     background = pygame.Surface(DISPLAYSURF.get_size())
@@ -198,7 +202,6 @@ def start():
                 going = False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
-                    print("uppp")
                     direction = 0
                 elif event.key == pygame.K_DOWN:
                     direction = 1
