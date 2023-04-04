@@ -92,6 +92,9 @@ class Target(pygame.sprite.Sprite):
         screen = pygame.display.get_surface()
         self.area = screen.get_rect()
         self.rect.topleft = 445, 210
+        # colorImage = pygame.Surface(self.image.get_size()).convert_alpha()
+        # colorImage.fill("#848787")
+        # self.image.blit(colorImage, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
 
     def location(self):
         return self.rect.left, self.rect.top
@@ -166,6 +169,19 @@ def draw_enemies(count):
     return enemies
 
 
+def check_collision(new_x, new_y, ew, eh, targ):
+    if new_x + ew > targ.rect.left - 2 and new_x + ew < targ.rect.right + 2:
+        if new_y + eh > targ.rect.top - 2 and new_y + eh < targ.rect.bottom + 2:
+            return True
+
+    if new_x > targ.rect.left - 2 and new_x < targ.rect.right + 2:
+        if new_y > targ.rect.top - 2 and new_y < targ.rect.bottom + 2:
+            return True
+    return False
+
+    pass
+
+
 # NOTE: Drag and Drop
 key_list = pygame.sprite.Group()
 
@@ -224,9 +240,15 @@ def start():
         for enemy in enemy_group:
             if enemy.clicked == True:
                 pos = pygame.mouse.get_pos()
-                enemy.rect.topleft = pos[0] - (enemy.rect.width / 2), pos[1] - (
-                    enemy.rect.height / 2
-                )
+                new_x = pos[0] - (enemy.rect.width / 2)
+                new_y = pos[1] - (enemy.rect.height / 2)
+                ew = enemy.rect.width
+                eh = enemy.rect.height
+
+                if not check_collision(new_x, new_y, ew, eh, target):
+                    enemy.rect.topleft = pos[0] - (enemy.rect.width / 2), pos[1] - (
+                        enemy.rect.height / 2
+                    )
 
         allsprites.update(direction)
 
