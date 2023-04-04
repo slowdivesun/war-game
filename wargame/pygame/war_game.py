@@ -44,6 +44,13 @@ slider_knob_y = slider_y + int(slider_height / 2)
 font = pygame.font.SysFont("Arial", 30)  # NOTE: font size
 
 
+# Bullet Event
+milliseconds_delay = 2000  # 0.5 seconds
+bullet_event = pygame.USEREVENT + 1
+pygame.time.set_timer(bullet_event, milliseconds_delay)
+bullet_speed = 5
+
+
 def draw_text(text, font, text_color, x, y):
     img = font.render(text, True, text_color)
     DISPLAYSURF.blit(img, (x, y))
@@ -92,6 +99,10 @@ class Target(pygame.sprite.Sprite):
         screen = pygame.display.get_surface()
         self.area = screen.get_rect()
         self.rect.topleft = 445, 210
+        # NOTE: Draw border around rect
+        # pygame.draw.rect(self.image, "red", self.image.get_rect(), 2)
+
+        # NOTE: Color the rect
         # colorImage = pygame.Surface(self.image.get_size()).convert_alpha()
         # colorImage.fill("#848787")
         # self.image.blit(colorImage, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
@@ -107,6 +118,7 @@ class Enemy(pygame.sprite.Sprite):
         screen = pygame.display.get_surface()
         self.area = screen.get_rect()
         self.rect.topleft = left, top
+        self.angle = 0
 
         # NOTE: drag and drop
         self.clicked = False
@@ -115,9 +127,28 @@ class Enemy(pygame.sprite.Sprite):
         return self.rect.left, self.rect.top
 
 
+class Bullet(pygame.sprite.Sprite):
+    def __init__(
+        self,
+        enemy,
+    ):
+        pygame.sprite.Sprite.__init__(self)
+        self.image, self.rect = load_image("bullet.png", -1, 0.02)
+        screen = pygame.display.get_surface()
+        self.area = screen.get_rect()
+        self.rect.topleft = (
+            enemy.rect.topleft[0] + enemy.rect.width,
+            enemy.rect.topleft[1] + enemy.rect.height / 2 - self.rect.height / 2,
+        )
+
+    def update(self):
+        if not DISPLAYSURF.contains(self.rect):
+            self.kill()
+
+
 class Soldier(pygame.sprite.Sprite):
     def __init__(self):
-        pygame.sprite.Sprite.__init__(self)  # call Sprite initializer
+        pygame.sprite.Sprite.__init__(self)
         self.image, self.rect = load_image("soldier.png", -1, 0.035)
         screen = pygame.display.get_surface()
         self.area = screen.get_rect()
@@ -158,7 +189,6 @@ class Soldier(pygame.sprite.Sprite):
 
 def draw_enemies(count):
     enemies = []
-
     left = 5
     top = 5
     img_width = pygame.image.load("./wargame/pygame/data/enemy.png").get_width() * 0.08
@@ -173,17 +203,15 @@ def check_collision(new_x, new_y, ew, eh, targ):
     if new_x + ew > targ.rect.left - 2 and new_x + ew < targ.rect.right + 2:
         if new_y + eh > targ.rect.top - 2 and new_y + eh < targ.rect.bottom + 2:
             return True
+        if new_y > targ.rect.top - 2 and new_y < targ.rect.bottom + 2:
+            return True
 
     if new_x > targ.rect.left - 2 and new_x < targ.rect.right + 2:
+        if new_y + eh > targ.rect.top - 2 and new_y + eh < targ.rect.bottom + 2:
+            return True
         if new_y > targ.rect.top - 2 and new_y < targ.rect.bottom + 2:
             return True
     return False
-
-    pass
-
-
-# NOTE: Drag and Drop
-key_list = pygame.sprite.Group()
 
 
 def start():
@@ -203,8 +231,12 @@ def start():
     target = Target()
     enemies = draw_enemies(slider_value)
     allsprites = pygame.sprite.RenderPlain((soldier, target))
-    enemy_group = pygame.sprite.Group((enemies[0], enemies[1]))
+    enemy_group = pygame.sprite.Group(tuple(enemies))
+
+    bullet_group = pygame.sprite.Group()
+
     create_buttons(550, 10, 120, 50, font, "Quit", 580, 15)
+
     going = True
     direction = -1
     while going:
@@ -212,6 +244,10 @@ def start():
         if soldier.location() == target.location():
             going = False
         for event in pygame.event.get():
+            if event.type == bullet_event:
+                for enemy in enemy_group:
+                    bullet = Bullet(enemy)
+                    bullet_group.add(bullet)
             if event.type == pygame.QUIT:
                 going = False
             elif event.type == pygame.K_ESCAPE:
@@ -256,6 +292,7 @@ def start():
         DISPLAYSURF.blit(background, (0, 0))
         allsprites.draw(DISPLAYSURF)
         enemy_group.draw(DISPLAYSURF)
+        bullet_group.draw(DISPLAYSURF)
         pygame.display.flip()
 
     pygame.quit()
