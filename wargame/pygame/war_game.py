@@ -1,6 +1,7 @@
 import pygame, sys
 import os
 from pygame.locals import *
+import math
 
 if not pygame.font:
     print("Warning, fonts disabled")
@@ -48,7 +49,7 @@ font = pygame.font.SysFont("Arial", 30)  # NOTE: font size
 milliseconds_delay = 2000  # 0.5 seconds
 bullet_event = pygame.USEREVENT + 1
 pygame.time.set_timer(bullet_event, milliseconds_delay)
-bullet_speed = 5
+bullet_speed = 1
 
 
 def draw_text(text, font, text_color, x, y):
@@ -112,13 +113,13 @@ class Target(pygame.sprite.Sprite):
 
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, left, top):
+    def __init__(self, left, top, angle=0):
         pygame.sprite.Sprite.__init__(self)
         self.image, self.rect = load_image("enemy.png", -1, 0.08)
         screen = pygame.display.get_surface()
         self.area = screen.get_rect()
         self.rect.topleft = left, top
-        self.angle = 0
+        self.angle = angle
 
         # NOTE: drag and drop
         self.clicked = False
@@ -140,10 +141,21 @@ class Bullet(pygame.sprite.Sprite):
             enemy.rect.topleft[0] + enemy.rect.width,
             enemy.rect.topleft[1] + enemy.rect.height / 2 - self.rect.height / 2,
         )
+        self.angle = enemy.angle
 
     def update(self):
-        if not DISPLAYSURF.contains(self.rect):
-            self.kill()
+        self.rect.center = calculate_new_xy(
+            self.rect.center, bullet_speed, math.radians(self.angle)
+        )
+        # NOTE: Bullet leaves the screen
+        # if not DISPLAYSURF.contains(self.rect):
+        #     self.kill()
+
+
+def calculate_new_xy(old_xy, speed, angle_in_radians):
+    new_x = old_xy[0] + (speed * math.cos(angle_in_radians))
+    new_y = old_xy[1] + (speed * math.sin(angle_in_radians))
+    return new_x, new_y
 
 
 class Soldier(pygame.sprite.Sprite):
@@ -218,10 +230,24 @@ def start():
     pygame.display.set_caption("War")
     pygame.mouse.set_visible(True)
 
+    DISPLAYSURF.fill("#aaeebb")
+
     # Create The Background
     background = pygame.Surface(DISPLAYSURF.get_size())
-    background = background.convert()
     background.fill("#aaeebb")
+
+    # Add bushes
+    bush_img = pygame.image.load("./wargame/pygame/data/bush.png")
+    # bush_img.convert_alpha()
+    # bush_img.convert()
+    bush_img = bush_img.copy()
+    alpha = 128
+    bush_img.fill((255, 255, 255, alpha), None, pygame.BLEND_RGBA_MULT)
+    bush_img = pygame.transform.scale(bush_img, (60, 40))
+    for y in range(0, 600, 40):
+        for x in range(0, 900, 60):
+            background.blit(bush_img, (x, y))
+    pygame.display.flip()
 
     # Display The Background
     DISPLAYSURF.blit(background, (0, 0))
@@ -232,7 +258,6 @@ def start():
     enemies = draw_enemies(slider_value)
     allsprites = pygame.sprite.RenderPlain((soldier, target))
     enemy_group = pygame.sprite.Group(tuple(enemies))
-
     bullet_group = pygame.sprite.Group()
 
     create_buttons(550, 10, 120, 50, font, "Quit", 580, 15)
@@ -287,6 +312,7 @@ def start():
                     )
 
         allsprites.update(direction)
+        bullet_group.update()
 
         # Draw Everything
         DISPLAYSURF.blit(background, (0, 0))
