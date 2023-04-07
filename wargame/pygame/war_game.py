@@ -43,13 +43,8 @@ slider_knob_x = slider_x + int(
 slider_knob_y = slider_y + int(slider_height / 2)
 
 font = pygame.font.SysFont("Arial", 30)  # NOTE: font size
-
-
-# Bullet Event
-milliseconds_delay = 2000  # 0.5 seconds
-bullet_event = pygame.USEREVENT + 1
-pygame.time.set_timer(bullet_event, milliseconds_delay)
 bullet_speed = 1
+FPS = pygame.time.Clock()
 
 
 def draw_text(text, font, text_color, x, y):
@@ -133,28 +128,33 @@ class Bullet(pygame.sprite.Sprite):
         self,
         enemy,
     ):
+        self.enemy = enemy
         pygame.sprite.Sprite.__init__(self)
         self.image, self.rect = load_image("bullet.png", -1, 0.02)
         screen = pygame.display.get_surface()
         self.area = screen.get_rect()
         self.rect.topleft = (
-            enemy.rect.topleft[0] + enemy.rect.width,
-            enemy.rect.topleft[1] + enemy.rect.height / 2 - self.rect.height / 2,
+            self.enemy.rect.topleft[0] + self.enemy.rect.width,
+            self.enemy.rect.topleft[1]
+            + self.enemy.rect.height / 2
+            - self.rect.height / 2,
         )
-        self.angle = enemy.angle
+        self.angle = self.enemy.angle
 
-    def update(self):
-        self.rect.center = calculate_new_xy(
-            self.rect.center, bullet_speed, math.radians(self.angle)
+    def update(self, dt):
+        center = calculate_new_xy(
+            self.rect.center, bullet_speed, math.radians(self.angle), dt
         )
+        self.rect.center = center
+        # print(self.rect.center)
         # NOTE: Bullet leaves the screen
-        # if not DISPLAYSURF.contains(self.rect):
-        #     self.kill()
+        if not DISPLAYSURF.get_rect().contains(self.rect):
+            self.kill()
 
 
-def calculate_new_xy(old_xy, speed, angle_in_radians):
-    new_x = old_xy[0] + (speed * math.cos(angle_in_radians))
-    new_y = old_xy[1] + (speed * math.sin(angle_in_radians))
+def calculate_new_xy(old_xy, speed, angle_in_radians, dt):
+    new_x = old_xy[0] + (speed * math.cos(angle_in_radians) * dt)
+    new_y = old_xy[1] + (speed * math.sin(angle_in_radians) * dt)
     return new_x, new_y
 
 
@@ -227,6 +227,11 @@ def check_collision(new_x, new_y, ew, eh, targ):
 
 
 def start():
+    # Bullet Event
+    milliseconds_delay = 2000  # 0.5 seconds
+    bullet_event = pygame.USEREVENT + 1
+    pygame.time.set_timer(bullet_event, milliseconds_delay)
+
     pygame.display.set_caption("War")
     pygame.mouse.set_visible(True)
 
@@ -264,6 +269,9 @@ def start():
 
     going = True
     direction = -1
+
+    clock = pygame.time.Clock()
+
     while going:
         direction = -1
         if soldier.location() == target.location():
@@ -311,14 +319,17 @@ def start():
                         enemy.rect.height / 2
                     )
 
-        allsprites.update(direction)
-        bullet_group.update()
+        dt = FPS.tick(60)
 
         # Draw Everything
         DISPLAYSURF.blit(background, (0, 0))
         allsprites.draw(DISPLAYSURF)
         enemy_group.draw(DISPLAYSURF)
         bullet_group.draw(DISPLAYSURF)
+
+        allsprites.update(direction)
+        bullet_group.update(dt)
+
         pygame.display.flip()
 
     pygame.quit()
@@ -380,7 +391,8 @@ def main_menu():
     # Display The Background
     DISPLAYSURF.blit(background, (0, 0))
     pygame.display.flip()
-    while True:  # main game loop
+
+    while True:
         DISPLAYSURF.blit(background, (0, 0))
         draw_slider()
         button1 = create_buttons(
