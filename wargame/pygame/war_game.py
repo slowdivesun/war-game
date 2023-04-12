@@ -72,7 +72,7 @@ main_dir = os.path.split(os.path.abspath(__file__))[0]
 data_dir = os.path.join(main_dir, "data")
 
 
-def load_image(name, colorkey=None, scale=1):
+def load_image(name, colorkey=None, scale=1, angle=0):
     fullname = os.path.join(data_dir, name)
     image = pygame.image.load(fullname)
     image = image.convert()
@@ -80,6 +80,7 @@ def load_image(name, colorkey=None, scale=1):
     size = image.get_size()
     size = (size[0] * scale, size[1] * scale)
     image = pygame.transform.scale(image, size)
+    image = pygame.transform.rotate(image, angle)
 
     if colorkey is not None:
         if colorkey == -1:
@@ -108,9 +109,9 @@ class Target(pygame.sprite.Sprite):
 
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, left, top, angle=0):
+    def __init__(self, left, top, angle=30):
         pygame.sprite.Sprite.__init__(self)
-        self.image, self.rect = load_image("enemy.png", -1, 0.08)
+        self.image, self.rect = load_image("enemy.png", -1, 0.08, angle)
         screen = pygame.display.get_surface()
         self.area = screen.get_rect()
         self.rect.topleft = left, top
@@ -129,17 +130,18 @@ class Bullet(pygame.sprite.Sprite):
         enemy,
     ):
         self.enemy = enemy
+        self.angle = self.enemy.angle
         pygame.sprite.Sprite.__init__(self)
-        self.image, self.rect = load_image("bullet.png", -1, 0.02)
+        self.image, self.rect = load_image("bullet.png", -1, 0.02, self.angle)
         screen = pygame.display.get_surface()
         self.area = screen.get_rect()
-        self.rect.topleft = (
-            self.enemy.rect.topleft[0] + self.enemy.rect.width,
-            self.enemy.rect.topleft[1]
-            + self.enemy.rect.height / 2
-            - self.rect.height / 2,
+        self.rect.center = (
+            self.enemy.rect.center[0]
+            + (self.enemy.rect.width / 2) * math.cos(math.radians(self.angle)),
+            self.enemy.rect.center[1]
+            - (self.enemy.rect.height / 2) * math.sin(math.radians(self.angle))
+            - (self.rect.height / 2) * math.sin(math.radians(self.angle)),
         )
-        self.angle = self.enemy.angle
 
     def update(self, dt):
         center = calculate_new_xy(
@@ -154,7 +156,7 @@ class Bullet(pygame.sprite.Sprite):
 
 def calculate_new_xy(old_xy, speed, angle_in_radians, dt):
     new_x = old_xy[0] + (speed * math.cos(angle_in_radians) * dt)
-    new_y = old_xy[1] + (speed * math.sin(angle_in_radians) * dt)
+    new_y = old_xy[1] - (speed * math.sin(angle_in_radians) * dt)
     return new_x, new_y
 
 
