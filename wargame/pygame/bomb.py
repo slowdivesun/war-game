@@ -4,7 +4,7 @@ from pygame.locals import *
 import math
 
 
-bomb_speed = 2
+bomb_speed = 1
 
 main_dir = os.path.split(os.path.abspath(__file__))[0]
 data_dir = os.path.join(main_dir, "data")
@@ -26,31 +26,29 @@ def load_image(name, colorkey=None, scale=1):
     return image, image.get_rect()
 
 
-def calculate_new_xy(old_xy, speed, direction, angle_in_radians, dt):
-    speed_x = speed * math.cos(direction)
-    speed_y = speed * math.sin(direction)
-    new_x = old_xy[0] + (speed_x * math.cos(angle_in_radians) * dt)
-    new_y = old_xy[1] + (
-        speed_y * dt - 0.5 * 9.8 * dt * dt
-    )  # second equation of motion
+def calculate_new_xy_bomb(old_xy, speed, bomb_angle_radians, dt):
+    new_x = old_xy[0] + (speed * math.cos(bomb_angle_radians) * dt)
+    new_y = old_xy[1] + (speed * math.sin(bomb_angle_radians) * dt)
     return new_x, new_y
 
 
-class Bullet(pygame.sprite.Sprite):
-    def __init__(self, direction, angle, init_x, init_y, display):
-        self.direction = direction
+class Bomb(pygame.sprite.Sprite):
+    def __init__(self, angle, init_x, init_y, display, lim_x, lim_y):
         self.angle = angle
+        self.lim_x = lim_x
+        self.lim_y = lim_y
         pygame.sprite.Sprite.__init__(self)
-        self.image, self.rect = load_image("bullet.png", -1, 0.02)
+        self.image, self.rect = load_image("bomb.png", -1, 0.05)
         screen = pygame.display.get_surface()
         self.area = screen.get_rect()
         self.rect.topleft = (init_x, init_y)
         self.display = display
 
     def update(self, dt):
-        center = calculate_new_xy(
-            self.rect.center, bomb_speed, math.radians(self.angle), dt
-        )
-        self.rect.center = center
-        if not self.display.get_rect().contains(self.rect):
-            self.kill()
+        print(self.rect.center)
+        center = calculate_new_xy_bomb(self.rect.center, bomb_speed, self.angle, dt)
+        print(center)
+        if center[0] + 2 < self.lim_x and center[0] - 2 > self.lim_x:
+            pass
+        else:
+            self.rect.center = center

@@ -2,6 +2,8 @@ import pygame, sys
 import os
 from pygame.locals import *
 import math
+from bomb import Bomb
+import random
 
 if not pygame.font:
     print("Warning, fonts disabled")
@@ -161,7 +163,7 @@ def calculate_new_xy(old_xy, speed, angle_in_radians, dt):
 
 
 class Soldier(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, soldier_x=10, soldier_y=90):
         pygame.sprite.Sprite.__init__(self)
         self.image, self.rect = load_image("soldier.png", -1, 0.035)
         screen = pygame.display.get_surface()
@@ -193,6 +195,7 @@ class Soldier(pygame.sprite.Sprite):
                 newpos = self.rect.move((-5, 0))
         else:
             if self.rect.right != self.area.right:
+                print("hello")
                 newpos = self.rect.move((5, 0))
 
         self.rect = newpos
@@ -228,15 +231,39 @@ def check_collision(new_x, new_y, ew, eh, targ):
     return False
 
 
+def generate_bomb_coordinates():
+    side = random.randint(1, 4)
+    side = 1
+    coordinate_x = 0
+    coordinate_y = 0
+    # top, right, bottom, left
+    if side == 1:
+        coordinate_x = random.randint(0, 900)
+    if side == 2:
+        coordinate_x = 900
+        coordinate_y = random.randint(0, 600)
+    if side == 3:
+        coordinate_y = 600
+        coordinate_x = random.randint(0, 900)
+    if side == 4:
+        coordinate_y = random.randint(0, 600)
+    return coordinate_x, coordinate_y
+
+
 def start():
     # Bullet Event
     milliseconds_delay = 2000  # 0.5 seconds
     bullet_event = pygame.USEREVENT + 1
     pygame.time.set_timer(bullet_event, milliseconds_delay)
 
+    # Bomb Event
+    bomb_delay = 3000
+    bomb_event = pygame.USEREVENT + 2
+    pygame.time.set_timer(bomb_event, bomb_delay)
+
+    # Display parameters
     pygame.display.set_caption("War")
     pygame.mouse.set_visible(True)
-
     DISPLAYSURF.fill("#aaeebb")
 
     # Create The Background
@@ -245,8 +272,7 @@ def start():
 
     # Add bushes
     bush_img = pygame.image.load("./wargame/pygame/data/bush.png")
-    # bush_img.convert_alpha()
-    # bush_img.convert()
+    # bush_img.convert_alpha() # bush_img.convert()
     bush_img = bush_img.copy()
     alpha = 128
     bush_img.fill((255, 255, 255, alpha), None, pygame.BLEND_RGBA_MULT)
@@ -266,6 +292,7 @@ def start():
     allsprites = pygame.sprite.RenderPlain((soldier, target))
     enemy_group = pygame.sprite.Group(tuple(enemies))
     bullet_group = pygame.sprite.Group()
+    bomb_group = pygame.sprite.Group()
 
     create_buttons(550, 10, 120, 50, font, "Quit", 580, 15)
 
@@ -283,6 +310,23 @@ def start():
                 for enemy in enemy_group:
                     bullet = Bullet(enemy)
                     bullet_group.add(bullet)
+            if event.type == bomb_event:
+                coordinate_x, coordinate_y = generate_bomb_coordinates()
+
+                bomb_angle = math.atan2(
+                    soldier.rect.center[1] - coordinate_y,
+                    soldier.rect.center[0] - coordinate_x,
+                )
+                print("bomb-angle: ", bomb_angle)
+                bomb = Bomb(
+                    bomb_angle,
+                    coordinate_x,
+                    coordinate_y,
+                    DISPLAYSURF,
+                    10,
+                    90,
+                )
+                bomb_group.add(bomb)
             if event.type == pygame.QUIT:
                 going = False
             elif event.type == pygame.K_ESCAPE:
@@ -328,9 +372,11 @@ def start():
         allsprites.draw(DISPLAYSURF)
         enemy_group.draw(DISPLAYSURF)
         bullet_group.draw(DISPLAYSURF)
+        bomb_group.draw(DISPLAYSURF)
 
         allsprites.update(direction)
         bullet_group.update(dt)
+        bomb_group.update(dt)
 
         pygame.display.flip()
 
