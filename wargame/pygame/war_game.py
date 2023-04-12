@@ -195,7 +195,6 @@ class Soldier(pygame.sprite.Sprite):
                 newpos = self.rect.move((-5, 0))
         else:
             if self.rect.right != self.area.right:
-                print("hello")
                 newpos = self.rect.move((5, 0))
 
         self.rect = newpos
@@ -312,10 +311,11 @@ def start():
                     bullet_group.add(bullet)
             if event.type == bomb_event:
                 coordinate_x, coordinate_y = generate_bomb_coordinates()
-
+                sold_y = soldier.rect.center[1]
+                sold_x = soldier.rect.center[0]
                 bomb_angle = math.atan2(
-                    soldier.rect.center[1] - coordinate_y,
-                    soldier.rect.center[0] - coordinate_x,
+                    sold_y - coordinate_y,
+                    sold_x - coordinate_x,
                 )
                 print("bomb-angle: ", bomb_angle)
                 bomb = Bomb(
@@ -323,8 +323,8 @@ def start():
                     coordinate_x,
                     coordinate_y,
                     DISPLAYSURF,
-                    10,
-                    90,
+                    sold_x,
+                    sold_y,
                 )
                 bomb_group.add(bomb)
             if event.type == pygame.QUIT:

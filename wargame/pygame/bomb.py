@@ -45,10 +45,8 @@ class Bomb(pygame.sprite.Sprite):
         self.display = display
 
     def update(self, dt):
-        print(self.rect.center)
         center = calculate_new_xy_bomb(self.rect.center, bomb_speed, self.angle, dt)
-        print(center)
-        if center[0] + 2 < self.lim_x and center[0] - 2 > self.lim_x:
-            pass
-        else:
+        if not self.rect.collidepoint(self.lim_x, self.lim_y):
             self.rect.center = center
+        else:
+            print("yoyoyoyo")
