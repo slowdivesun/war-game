@@ -2,34 +2,44 @@ import pygame, sys
 import os
 from pygame.locals import *
 import math
-
+from load_image import load_image
+from explosion_group import explosion_group
 
 bomb_speed = 1
-
-main_dir = os.path.split(os.path.abspath(__file__))[0]
-data_dir = os.path.join(main_dir, "data")
-
-
-def load_image(name, colorkey=None, scale=1):
-    fullname = os.path.join(data_dir, name)
-    image = pygame.image.load(fullname)
-    image = image.convert()
-
-    size = image.get_size()
-    size = (size[0] * scale, size[1] * scale)
-    image = pygame.transform.scale(image, size)
-
-    if colorkey is not None:
-        if colorkey == -1:
-            colorkey = image.get_at((0, 0))
-        image.set_colorkey(colorkey, pygame.RLEACCEL)
-    return image, image.get_rect()
 
 
 def calculate_new_xy_bomb(old_xy, speed, bomb_angle_radians, dt):
     new_x = old_xy[0] + (speed * math.cos(bomb_angle_radians) * dt)
     new_y = old_xy[1] + (speed * math.sin(bomb_angle_radians) * dt)
     return new_x, new_y
+
+
+class Explosion(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.images = []
+        for num in range(1, 6):
+            img, rect = load_image(f"explosions/exp{num}.png", -1, 1)
+            img = pygame.transform.scale(img, (100, 100))
+            self.images.append(img)
+        self.index = 0
+        self.image = self.images[self.index]
+        self.rect = self.image.get_rect()
+        self.rect.center = [x, y]
+        self.counter = 0
+
+    def update(self):
+        explosion_speed = 4
+        self.counter += 1
+
+        if self.counter >= explosion_speed and self.index < len(self.images) - 1:
+            self.counter = 0
+            self.index += 1
+            self.image = self.images[self.index]
+
+        # if the animation is complete, reset animation index
+        if self.index >= len(self.images) - 1 and self.counter >= explosion_speed:
+            self.kill()
 
 
 class Bomb(pygame.sprite.Sprite):
@@ -48,5 +58,8 @@ class Bomb(pygame.sprite.Sprite):
         center = calculate_new_xy_bomb(self.rect.center, bomb_speed, self.angle, dt)
         if not self.rect.collidepoint(self.lim_x, self.lim_y):
             self.rect.center = center
+
         else:
-            print("yoyoyoyo")
+            new_explosion = Explosion(self.lim_x, self.lim_y)
+            explosion_group.add(new_explosion)
+            self.kill()

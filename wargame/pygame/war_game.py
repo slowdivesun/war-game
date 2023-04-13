@@ -4,6 +4,8 @@ from pygame.locals import *
 import math
 from bomb import Bomb
 import random
+from load_image import load_image
+from explosion_group import explosion_group
 
 if not pygame.font:
     print("Warning, fonts disabled")
@@ -68,27 +70,6 @@ def create_buttons(x, y, w, h, font, text, k, g, color="black"):
     text_rect = button_text.get_rect(center=(x + (w / 2), y + (h / 2)))
     DISPLAYSURF.blit(button_text, text_rect)
     return button
-
-
-main_dir = os.path.split(os.path.abspath(__file__))[0]
-data_dir = os.path.join(main_dir, "data")
-
-
-def load_image(name, colorkey=None, scale=1, angle=0):
-    fullname = os.path.join(data_dir, name)
-    image = pygame.image.load(fullname)
-    image = image.convert()
-
-    size = image.get_size()
-    size = (size[0] * scale, size[1] * scale)
-    image = pygame.transform.scale(image, size)
-    image = pygame.transform.rotate(image, angle)
-
-    if colorkey is not None:
-        if colorkey == -1:
-            colorkey = image.get_at((0, 0))
-        image.set_colorkey(colorkey, pygame.RLEACCEL)
-    return image, image.get_rect()
 
 
 class Target(pygame.sprite.Sprite):
@@ -260,6 +241,9 @@ def start():
     bomb_event = pygame.USEREVENT + 2
     pygame.time.set_timer(bomb_event, bomb_delay)
 
+    # Bomb Detonate Event
+    detonate_event = pygame.USEREVENT + 3
+
     # Display parameters
     pygame.display.set_caption("War")
     pygame.mouse.set_visible(True)
@@ -298,8 +282,6 @@ def start():
     going = True
     direction = -1
 
-    clock = pygame.time.Clock()
-
     while going:
         direction = -1
         if soldier.location() == target.location():
@@ -317,7 +299,6 @@ def start():
                     sold_y - coordinate_y,
                     sold_x - coordinate_x,
                 )
-                print("bomb-angle: ", bomb_angle)
                 bomb = Bomb(
                     bomb_angle,
                     coordinate_x,
@@ -373,10 +354,12 @@ def start():
         enemy_group.draw(DISPLAYSURF)
         bullet_group.draw(DISPLAYSURF)
         bomb_group.draw(DISPLAYSURF)
+        explosion_group.draw(DISPLAYSURF)
 
         allsprites.update(direction)
         bullet_group.update(dt)
         bomb_group.update(dt)
+        explosion_group.update()
 
         pygame.display.flip()
 
