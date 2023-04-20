@@ -13,17 +13,26 @@ if not pygame.mixer:
     print("Warning, sound disabled")
 pygame.init()
 
+main_dir = os.path.split(os.path.abspath(__file__))[0]
+data_dir = os.path.join(main_dir, "data")
+
+
+def get_full_path(file):
+    fullname = os.path.join(data_dir, file)
+    return fullname
+
+
 disp_width = 900
 disp_height = 600
 DISPLAYSURF = pygame.display.set_mode((disp_width, disp_height))
 
 # Define Terrain
 terrain = "Desert"
-desert_img = pygame.image.load("desert.png")
+desert_img = pygame.image.load(get_full_path("desert.png"))
 desert_img = pygame.transform.scale(desert_img, (250, 240))
-mountain_img = pygame.image.load("mountain.png")
+mountain_img = pygame.image.load(get_full_path("mountain.png"))
 mountain_img = pygame.transform.scale(mountain_img, (250, 240))
-snow_img = pygame.image.load("snow.png")
+snow_img = pygame.image.load(get_full_path("snow.png"))
 snow_img = pygame.transform.scale(snow_img, (250, 240))
 
 # Define colors
@@ -188,7 +197,7 @@ def draw_enemies(count):
     enemies = []
     left = 5
     top = 5
-    img_width = pygame.image.load("./wargame/pygame/data/enemy.png").get_width() * 0.08
+    img_width = load_image("enemy.png")[0].get_width() * 0.08
 
     for i in range(count):
         enemies.append(Enemy(left + (img_width + 2) * i, top))
@@ -254,7 +263,7 @@ def start():
     background.fill("#aaeebb")
 
     # Add bushes
-    bush_img = pygame.image.load("./wargame/pygame/data/bush.png")
+    bush_img = pygame.image.load(get_full_path("bush.png"))
     # bush_img.convert_alpha() # bush_img.convert()
     bush_img = bush_img.copy()
     alpha = 128
