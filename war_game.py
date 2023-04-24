@@ -15,6 +15,7 @@ pygame.init()
 
 main_dir = os.path.split(os.path.abspath(__file__))[0]
 data_dir = os.path.join(main_dir, "data")
+screen_shots_dir = os.path.join(main_dir, "saved_games_screen_shots")
 
 
 def get_full_path(file):
@@ -22,11 +23,17 @@ def get_full_path(file):
     return fullname
 
 
+def get_full_path_ss(file):
+    fullname = os.path.join(screen_shots_dir, file)
+    return fullname
+
+
+# Create the Screen
 disp_width = 900
 disp_height = 600
 DISPLAYSURF = pygame.display.set_mode((disp_width, disp_height))
 
-# Define Terrain
+# REMOVE: Define Terrain
 terrain = "Desert"
 desert_img = pygame.image.load(get_full_path("desert.png"))
 desert_img = pygame.transform.scale(desert_img, (250, 240))
@@ -55,9 +62,14 @@ slider_knob_x = slider_x + int(
 )
 slider_knob_y = slider_y + int(slider_height / 2)
 
+
+# Define Fonts
 font = pygame.font.SysFont("Arial", 30)  # NOTE: font size
+
+# Define Constants
 bullet_speed = 1
 FPS = pygame.time.Clock()
+begin = False
 
 
 def draw_text(text, font, text_color, x, y):
@@ -176,16 +188,16 @@ class Soldier(pygame.sprite.Sprite):
         newpos = self.rect.move((0, 0))
         if direction == 0:  # UP
             if self.rect.top != self.area.top:
-                newpos = self.rect.move((0, -5))
+                newpos = self.rect.move((0, -10))
         elif direction == 1:  # DOWN
             if self.rect.bottom != self.area.bottom:
-                newpos = self.rect.move((0, 5))
+                newpos = self.rect.move((0, 10))
         elif direction == 2:
             if self.rect.left != self.area.left:
-                newpos = self.rect.move((-5, 0))
+                newpos = self.rect.move((-10, 0))
         else:
             if self.rect.right != self.area.right:
-                newpos = self.rect.move((5, 0))
+                newpos = self.rect.move((10, 0))
 
         self.rect = newpos
 
@@ -288,19 +300,22 @@ def start():
 
     create_buttons(550, 10, 120, 50, font, "Quit", 580, 15)
 
-    going = True
+    game = True
     direction = -1
+    global begin
+    print("Value: ", begin)
+    begin_button = None
 
-    while going:
+    while game:
         direction = -1
         if soldier.location() == target.location():
-            going = False
+            game = False
         for event in pygame.event.get():
-            if event.type == bullet_event:
+            if (event.type == bullet_event) and begin:
                 for enemy in enemy_group:
                     bullet = Bullet(enemy)
                     bullet_group.add(bullet)
-            if event.type == bomb_event:
+            if (event.type == bomb_event) and begin:
                 coordinate_x, coordinate_y = generate_bomb_coordinates()
                 sold_y = soldier.rect.center[1]
                 sold_x = soldier.rect.center[0]
@@ -318,9 +333,9 @@ def start():
                 )
                 bomb_group.add(bomb)
             if event.type == pygame.QUIT:
-                going = False
+                game = False
             elif event.type == pygame.K_ESCAPE:
-                going = False
+                game = False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
                     direction = 0
@@ -338,6 +353,11 @@ def start():
                     for enemy in enemy_group:
                         if enemy.rect.collidepoint(pos):
                             enemy.clicked = True
+                if (begin_button != None) and (
+                    begin_button.collidepoint(pygame.mouse.get_pos())
+                ):
+                    begin = True
+                    begin_button = None
             elif event.type == pygame.MOUSEBUTTONUP:
                 for enemy in enemy_group:
                     enemy.clicked = False
@@ -355,6 +375,7 @@ def start():
                         enemy.rect.height / 2
                     )
 
+        # Time Elapsed
         dt = FPS.tick(60)
 
         # Draw Everything
@@ -365,10 +386,15 @@ def start():
         bomb_group.draw(DISPLAYSURF)
         explosion_group.draw(DISPLAYSURF)
 
+        # Call Update Function of all Sprites
         allsprites.update(direction)
         bullet_group.update(dt)
         bomb_group.update(dt)
         explosion_group.update()
+
+        # Button to start the game
+        if not begin:
+            begin_button = create_buttons(650, 500, 100, 40, font, "BEGIN", 680, 505)
 
         pygame.display.flip()
 

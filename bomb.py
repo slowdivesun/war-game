@@ -5,7 +5,7 @@ import math
 from load_image import load_image
 from explosion_group import explosion_group
 
-bomb_speed = 1
+bomb_speed = 0.4
 
 
 def calculate_new_xy_bomb(old_xy, speed, bomb_angle_radians, dt):
