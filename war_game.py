@@ -64,7 +64,7 @@ slider_knob_y = slider_y + int(slider_height / 2)
 
 
 # Define Fonts
-font = pygame.font.SysFont("Arial", 30)  # NOTE: font size
+font = pygame.font.SysFont("bahnschrift", 30)  # NOTE: font size
 
 # Define Constants
 bullet_speed = 1
@@ -84,10 +84,10 @@ def draw_slider():
     )
 
 
-def create_buttons(x, y, w, h, font, text, k, g, color="black"):
+def create_buttons(x, y, w, h, font, text, k, g, color=WHITE):
     button = pygame.Rect(x, y, w, h)
-    pygame.draw.rect(DISPLAYSURF, (255, 255, 255), button)
-    button_text = font.render(text, True, color)
+    pygame.draw.rect(DISPLAYSURF, color, button)
+    button_text = font.render(text, True, BLACK)
     text_rect = button_text.get_rect(center=(x + (w / 2), y + (h / 2)))
     DISPLAYSURF.blit(button_text, text_rect)
     return button
@@ -301,15 +301,17 @@ def start():
     create_buttons(550, 10, 120, 50, font, "Quit", 580, 15)
 
     game = True
+    won = False
     direction = -1
     global begin
-    print("Value: ", begin)
     begin_button = None
 
     while game:
         direction = -1
-        if soldier.location() == target.location():
+        # Game Won
+        if soldier.rect.colliderect(target.rect):
             game = False
+            won = True
         for event in pygame.event.get():
             if (event.type == bullet_event) and begin:
                 for enemy in enemy_group:
@@ -387,14 +389,17 @@ def start():
         explosion_group.draw(DISPLAYSURF)
 
         # Call Update Function of all Sprites
-        allsprites.update(direction)
-        bullet_group.update(dt)
-        bomb_group.update(dt)
-        explosion_group.update()
+        if begin:
+            allsprites.update(direction)
+            bullet_group.update(dt)
+            bomb_group.update(dt)
+            explosion_group.update()
 
         # Button to start the game
         if not begin:
-            begin_button = create_buttons(650, 500, 100, 40, font, "BEGIN", 680, 505)
+            begin_button = create_buttons(
+                650, 500, 100, 40, font, "BEGIN", 680, 505, (17, 125, 28)
+            )
 
         pygame.display.flip()
 
@@ -462,15 +467,7 @@ def main_menu():
         DISPLAYSURF.blit(background, (0, 0))
         draw_slider()
         button1 = create_buttons(
-            380,
-            500,
-            120,
-            50,
-            pygame.font.SysFont("Arial", 30),
-            "START",
-            410,
-            505,
-            "black",
+            380, 500, 120, 50, pygame.font.SysFont("Arial", 30), "START", 410, 505
         )
         create_buttons(110, 150, 130, 50, font, "Obstacles", 114.5, 155)
         button3 = create_buttons(380, 300, 120, 50, font, "Terrain", 400, 305)
