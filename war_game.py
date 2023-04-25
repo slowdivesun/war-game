@@ -118,11 +118,20 @@ class Enemy(pygame.sprite.Sprite):
         self.image, self.rect = load_image("enemy.png", -1, 0.08, angle)
         screen = pygame.display.get_surface()
         self.area = screen.get_rect()
+        self.left = left
+        self.top = top
         self.rect.topleft = left, top
         self.angle = angle
 
         # NOTE: drag and drop
         self.clicked = False
+        self.selected = False
+
+    def change_angle(self):
+        if self.angle + 10 <= 90:
+            self.image, self.rect = load_image("enemy.png", -1, 0.08, self.angle + 10)
+            self.angle += 10
+            self.rect.topleft = self.left, self.top
 
     def location(self):
         return self.rect.left, self.rect.top
@@ -173,6 +182,9 @@ class Soldier(pygame.sprite.Sprite):
         self.rect.topleft = 10, 90
         self.move = 18
         self.right_facing = True
+
+    def restart(self):
+        self.rect.topleft = 10, 90
 
     def update(self, direction):
         if direction == 2 and self.right_facing == True:
@@ -302,22 +314,28 @@ def start():
 
     game = True
     won = False
+    killed = False
+    is_selected = False
+    selected_enemy = None
     direction = -1
     global begin
     begin_button = None
+    restart_button = None
+    rotate_button = None
 
     while game:
         direction = -1
         # Game Won
         if soldier.rect.colliderect(target.rect):
-            game = False
             won = True
         for event in pygame.event.get():
-            if (event.type == bullet_event) and begin:
+            # Make new bullets
+            if (event.type == bullet_event) and begin and (not won) and (not killed):
                 for enemy in enemy_group:
                     bullet = Bullet(enemy)
                     bullet_group.add(bullet)
-            if (event.type == bomb_event) and begin:
+            # Make new bombs
+            if (event.type == bomb_event) and begin and (not won) and (not killed):
                 coordinate_x, coordinate_y = generate_bomb_coordinates()
                 sold_y = soldier.rect.center[1]
                 sold_x = soldier.rect.center[0]
@@ -355,27 +373,53 @@ def start():
                     for enemy in enemy_group:
                         if enemy.rect.collidepoint(pos):
                             enemy.clicked = True
+                            enemy.selected = not enemy.selected
+                            is_selected = enemy.selected
+                            if is_selected:
+                                selected_enemy = enemy
+                            else:
+                                selected_enemy = None
+                        else:
+                            enemy.selected = False
                 if (begin_button != None) and (
                     begin_button.collidepoint(pygame.mouse.get_pos())
                 ):
                     begin = True
                     begin_button = None
+                if (restart_button != None) and (
+                    restart_button.collidepoint(pygame.mouse.get_pos())
+                ):
+                    begin = True
+                    won = False
+                    killed = False
+                    soldier.restart()
+                    bomb_group.empty()
+                    restart_button = None
+                if (
+                    (rotate_button != None)
+                    and is_selected
+                    and rotate_button.collidepoint(pygame.mouse.get_pos())
+                ):
+                    print("dbcs")
+                    selected_enemy.change_angle()
             elif event.type == pygame.MOUSEBUTTONUP:
                 for enemy in enemy_group:
                     enemy.clicked = False
 
-        for enemy in enemy_group:
-            if enemy.clicked == True:
-                pos = pygame.mouse.get_pos()
-                new_x = pos[0] - (enemy.rect.width / 2)
-                new_y = pos[1] - (enemy.rect.height / 2)
-                ew = enemy.rect.width
-                eh = enemy.rect.height
+        # Move the enemy to desired position
+        if not begin:
+            for enemy in enemy_group:
+                if enemy.clicked:
+                    pos = pygame.mouse.get_pos()
+                    new_x = pos[0] - (enemy.rect.width / 2)
+                    new_y = pos[1] - (enemy.rect.height / 2)
+                    ew = enemy.rect.width
+                    eh = enemy.rect.height
 
-                if not check_collision(new_x, new_y, ew, eh, target):
-                    enemy.rect.topleft = pos[0] - (enemy.rect.width / 2), pos[1] - (
-                        enemy.rect.height / 2
-                    )
+                    if not check_collision(new_x, new_y, ew, eh, target):
+                        enemy.rect.topleft = pos[0] - (enemy.rect.width / 2), pos[1] - (
+                            enemy.rect.height / 2
+                        )
 
         # Time Elapsed
         dt = FPS.tick(60)
@@ -389,7 +433,7 @@ def start():
         explosion_group.draw(DISPLAYSURF)
 
         # Call Update Function of all Sprites
-        if begin:
+        if (begin) and (not won) and (not killed):
             allsprites.update(direction)
             bullet_group.update(dt)
             bomb_group.update(dt)
@@ -398,7 +442,21 @@ def start():
         # Button to start the game
         if not begin:
             begin_button = create_buttons(
-                650, 500, 100, 40, font, "BEGIN", 680, 505, (17, 125, 28)
+                650, 500, 100, 40, font, "Begin", 680, 505, (17, 125, 28)
+            )
+            if is_selected:
+                rotate_button = create_buttons(
+                    450, 500, 100, 40, font, "Rotate", 680, 505, (17, 125, 28)
+                )
+            else:
+                rotate_button = create_buttons(
+                    450, 500, 100, 40, font, "Rotate", 680, 505, (96, 102, 97)
+                )
+
+        # Display restart button if game has ended
+        if won or killed:
+            restart_button = create_buttons(
+                650, 500, 120, 40, font, "Restart", 680, 505, (17, 125, 28)
             )
 
         pygame.display.flip()
