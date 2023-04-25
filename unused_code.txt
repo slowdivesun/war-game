@@ -1,0 +1,52 @@
+# REMOVE: Define Terrain
+terrain = "Desert"
+desert_img = pygame.image.load(get_full_path("desert.png"))
+desert_img = pygame.transform.scale(desert_img, (250, 240))
+mountain_img = pygame.image.load(get_full_path("mountain.png"))
+mountain_img = pygame.transform.scale(mountain_img, (250, 240))
+snow_img = pygame.image.load(get_full_path("snow.png"))
+snow_img = pygame.transform.scale(snow_img, (250, 240))
+
+
+def terrain_select():
+    global terrain
+    global desert_img
+    pygame.display.set_caption("Terrain")
+    background = pygame.Surface(DISPLAYSURF.get_size())
+    background = background.convert()
+    background.fill((0, 0, 0))
+
+    # Display The Background
+    DISPLAYSURF.blit(background, (0, 0))
+    pygame.display.flip()
+
+    while True:
+        DISPLAYSURF.blit(background, (0, 0))
+        DISPLAYSURF.blit(desert_img, (325, 80))
+        DISPLAYSURF.blit(mountain_img, (25, 80))
+        DISPLAYSURF.blit(snow_img, (625, 80))
+        button1 = create_buttons(80, 340, 120, 50, font, "Mountains", 81, 345)
+        button2 = create_buttons(390, 340, 120, 50, font, "Desert", 410, 345)
+        button3 = create_buttons(700, 340, 120, 50, font, "Snow", 730, 345)
+        button4 = create_buttons(380, 500, 120, 50, font, "Save", 410, 505)
+        buttons = [button1, button3, button2, button4]
+
+        draw_text("Choose Terrain", font, (255, 255, 255), 340, 10)
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+
+            elif event.type == MOUSEBUTTONDOWN:
+                for btn in buttons:
+                    if btn.collidepoint(pygame.mouse.get_pos()):
+                        if btn == button1:
+                            terrain = "Mountains"
+                        elif btn == button2:
+                            terrain = "Desert"
+                        elif btn == button3:
+                            terrain = "Snow"
+                        else:
+                            return
+
+        pygame.display.update()

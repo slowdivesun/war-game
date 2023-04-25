@@ -3,6 +3,9 @@ import os
 from pygame.locals import *
 import math
 from bomb import Bomb
+from civilian import Civilian
+from bonus import Bonus
+from sliders import CivilianSlider, BonusSlider
 import random
 from load_image import load_image
 from explosion_group import explosion_group
@@ -15,6 +18,7 @@ pygame.init()
 
 main_dir = os.path.split(os.path.abspath(__file__))[0]
 data_dir = os.path.join(main_dir, "data")
+sound_dir = os.path.join(main_dir, "sounds")
 screen_shots_dir = os.path.join(main_dir, "saved_games_screen_shots")
 
 
@@ -28,19 +32,17 @@ def get_full_path_ss(file):
     return fullname
 
 
+# Sound effects
+civilian_sound = pygame.mixer.Sound("./sounds/civilian.wav")
+bonus_sound = pygame.mixer.Sound("./sounds/coin.wav")
+lost_sound = pygame.mixer.Sound("./sounds/gameover.wav")
+won_sound = pygame.mixer.Sound("./sounds/won.wav")
+
+
 # Create the Screen
 disp_width = 900
 disp_height = 600
 DISPLAYSURF = pygame.display.set_mode((disp_width, disp_height))
-
-# REMOVE: Define Terrain
-terrain = "Desert"
-desert_img = pygame.image.load(get_full_path("desert.png"))
-desert_img = pygame.transform.scale(desert_img, (250, 240))
-mountain_img = pygame.image.load(get_full_path("mountain.png"))
-mountain_img = pygame.transform.scale(mountain_img, (250, 240))
-snow_img = pygame.image.load(get_full_path("snow.png"))
-snow_img = pygame.transform.scale(snow_img, (250, 240))
 
 # Define colors
 BLACK = (0, 0, 0)
@@ -82,6 +84,30 @@ def draw_slider():
     pygame.draw.circle(
         DISPLAYSURF, WHITE, (slider_knob_x, slider_knob_y), slider_knob_radius
     )
+
+
+def draw_civilian_slider():
+    civ_slider = CivilianSlider()
+    pygame.draw.rect(DISPLAYSURF, GRAY, civ_slider.slider_rect)
+    pygame.draw.circle(
+        DISPLAYSURF,
+        WHITE,
+        (civ_slider.slider_knob_x, civ_slider.slider_knob_y),
+        civ_slider.slider_knob_radius,
+    )
+    return civ_slider
+
+
+def draw_bonus_slider():
+    bon_slider = BonusSlider()
+    pygame.draw.rect(DISPLAYSURF, GRAY, bon_slider.slider_rect)
+    pygame.draw.circle(
+        DISPLAYSURF,
+        WHITE,
+        (bon_slider.slider_knob_x, bon_slider.slider_knob_y),
+        bon_slider.slider_knob_radius,
+    )
+    return bon_slider
 
 
 def create_buttons(x, y, w, h, font, text, k, g, color=WHITE):
@@ -464,50 +490,6 @@ def start():
     pygame.quit()
 
 
-def terrain_select():
-    global terrain
-    global desert_img
-    pygame.display.set_caption("Terrain")
-    background = pygame.Surface(DISPLAYSURF.get_size())
-    background = background.convert()
-    background.fill((0, 0, 0))
-
-    # Display The Background
-    DISPLAYSURF.blit(background, (0, 0))
-    pygame.display.flip()
-
-    while True:
-        DISPLAYSURF.blit(background, (0, 0))
-        DISPLAYSURF.blit(desert_img, (325, 80))
-        DISPLAYSURF.blit(mountain_img, (25, 80))
-        DISPLAYSURF.blit(snow_img, (625, 80))
-        button1 = create_buttons(80, 340, 120, 50, font, "Mountains", 81, 345)
-        button2 = create_buttons(390, 340, 120, 50, font, "Desert", 410, 345)
-        button3 = create_buttons(700, 340, 120, 50, font, "Snow", 730, 345)
-        button4 = create_buttons(380, 500, 120, 50, font, "Save", 410, 505)
-        buttons = [button1, button3, button2, button4]
-
-        draw_text("Choose Terrain", font, (255, 255, 255), 340, 10)
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                pygame.quit()
-                sys.exit()
-
-            elif event.type == MOUSEBUTTONDOWN:
-                for btn in buttons:
-                    if btn.collidepoint(pygame.mouse.get_pos()):
-                        if btn == button1:
-                            terrain = "Mountains"
-                        elif btn == button2:
-                            terrain = "Desert"
-                        elif btn == button3:
-                            terrain = "Snow"
-                        else:
-                            return
-
-        pygame.display.update()
-
-
 def main_menu():
     global slider_value
     global slider_knob_x
@@ -524,13 +506,15 @@ def main_menu():
     while True:
         DISPLAYSURF.blit(background, (0, 0))
         draw_slider()
+        # civ_slider = draw_civilian_slider()
+        # bon_slider = draw_bonus_slider()
         button1 = create_buttons(
             380, 500, 120, 50, pygame.font.SysFont("Arial", 30), "START", 410, 505
         )
         create_buttons(110, 150, 130, 50, font, "Obstacles", 114.5, 155)
-        button3 = create_buttons(380, 300, 120, 50, font, "Terrain", 400, 305)
-        # button4 = create_buttons(640, 150, 120, 50, font, "Enemy", 658, 155)
-        buttons = [button1, button3]  # NOTE: removed button4 from list
+        create_buttons(110, 240, 130, 50, font, "Bonus", 114.5, 155)
+        create_buttons(110, 330, 130, 50, font, "Civilians", 114.5, 155)
+        buttons = [button1]  # NOTE: removed button3,button4 from list
         draw_text("Choose parameters", font, (255, 255, 255), 340, 10)
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -554,9 +538,7 @@ def main_menu():
                     if btn.collidepoint(pygame.mouse.get_pos()):
                         if btn == button1:
                             start()
-                        elif btn == button3:
-                            terrain_select()
-                            pygame.display.set_caption("Main Page")
+                        # elif btn == button3:
                         # elif btn == button4:
 
         draw_text(str(slider_value), font, WHITE, slider_knob_x - 10, slider_y - 40)
