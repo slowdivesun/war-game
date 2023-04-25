@@ -5,7 +5,7 @@ import math
 from bomb import Bomb
 from civilian import Civilian
 from bonus import Bonus
-from sliders import CivilianSlider, BonusSlider
+from sliders import CivilianSlider, BonusSlider, EnemySlider
 import random
 from load_image import load_image
 from explosion_group import explosion_group
@@ -79,35 +79,39 @@ def draw_text(text, font, text_color, x, y):
     DISPLAYSURF.blit(img, (x, y))
 
 
-def draw_slider():
-    pygame.draw.rect(DISPLAYSURF, GRAY, slider_rect)
+e_slider = EnemySlider()
+c_slider = CivilianSlider()
+b_slider = BonusSlider()
+
+
+def draw_enemy_slider():
+    pygame.draw.rect(DISPLAYSURF, GRAY, e_slider.slider_rect)
     pygame.draw.circle(
-        DISPLAYSURF, WHITE, (slider_knob_x, slider_knob_y), slider_knob_radius
+        DISPLAYSURF,
+        WHITE,
+        (e_slider.slider_knob_x, e_slider.slider_knob_y),
+        e_slider.slider_knob_radius,
     )
 
 
 def draw_civilian_slider():
-    civ_slider = CivilianSlider()
-    pygame.draw.rect(DISPLAYSURF, GRAY, civ_slider.slider_rect)
+    pygame.draw.rect(DISPLAYSURF, GRAY, c_slider.slider_rect)
     pygame.draw.circle(
         DISPLAYSURF,
         WHITE,
-        (civ_slider.slider_knob_x, civ_slider.slider_knob_y),
-        civ_slider.slider_knob_radius,
+        (c_slider.slider_knob_x, c_slider.slider_knob_y),
+        c_slider.slider_knob_radius,
     )
-    return civ_slider
 
 
 def draw_bonus_slider():
-    bon_slider = BonusSlider()
-    pygame.draw.rect(DISPLAYSURF, GRAY, bon_slider.slider_rect)
+    pygame.draw.rect(DISPLAYSURF, GRAY, b_slider.slider_rect)
     pygame.draw.circle(
         DISPLAYSURF,
         WHITE,
-        (bon_slider.slider_knob_x, bon_slider.slider_knob_y),
-        bon_slider.slider_knob_radius,
+        (b_slider.slider_knob_x, b_slider.slider_knob_y),
+        b_slider.slider_knob_radius,
     )
-    return bon_slider
 
 
 def create_buttons(x, y, w, h, font, text, k, g, color=WHITE):
@@ -503,11 +507,13 @@ def main_menu():
     DISPLAYSURF.blit(background, (0, 0))
     pygame.display.flip()
 
+    i = 1
     while True:
+        i += 1
         DISPLAYSURF.blit(background, (0, 0))
-        draw_slider()
-        # civ_slider = draw_civilian_slider()
-        # bon_slider = draw_bonus_slider()
+        draw_enemy_slider()
+        draw_civilian_slider()
+        draw_bonus_slider()
         button1 = create_buttons(
             380, 500, 120, 50, pygame.font.SysFont("Arial", 30), "START", 410, 505
         )
@@ -524,15 +530,22 @@ def main_menu():
             elif event.type == pygame.MOUSEMOTION:
                 if event.buttons[0] == 1:  # if left button is pressed
                     # move slider knob
-                    slider_knob_x = min(
-                        max(event.pos[0], slider_x), slider_x + slider_width
-                    )
-                    slider_value = round(
-                        slider_min
-                        + (slider_max - slider_min)
-                        * (slider_knob_x - slider_x)
-                        / slider_width
-                    )
+                    # slider_knob_x = min(
+                    #     max(event.pos[0], slider_x), slider_x + slider_width
+                    # )
+                    # slider_value = round(
+                    #     slider_min
+                    #     + (slider_max - slider_min)
+                    #     * (slider_knob_x - slider_x)
+                    #     / slider_width
+                    # )
+                    if e_slider.slider_rect.collidepoint(pygame.mouse.get_pos()):
+                        e_slider.slider_value = e_slider.find_value(event)
+                    if b_slider.slider_rect.collidepoint(pygame.mouse.get_pos()):
+                        b_slider.slider_value = b_slider.find_value(event)
+                    if c_slider.slider_rect.collidepoint(pygame.mouse.get_pos()):
+                        c_slider.slider_value = c_slider.find_value(event)
+
             elif event.type == MOUSEBUTTONDOWN:
                 for btn in buttons:
                     if btn.collidepoint(pygame.mouse.get_pos()):
@@ -541,7 +554,27 @@ def main_menu():
                         # elif btn == button3:
                         # elif btn == button4:
 
-        draw_text(str(slider_value), font, WHITE, slider_knob_x - 10, slider_y - 40)
+        draw_text(
+            str(e_slider.slider_value),
+            font,
+            WHITE,
+            e_slider.slider_knob_x - 10,
+            e_slider.slider_y - 40,
+        )
+        draw_text(
+            str(b_slider.slider_value),
+            font,
+            WHITE,
+            b_slider.slider_knob_x - 10,
+            b_slider.slider_y - 40,
+        )
+        draw_text(
+            str(c_slider.slider_value),
+            font,
+            WHITE,
+            c_slider.slider_knob_x - 10,
+            c_slider.slider_y - 40,
+        )
         pygame.display.update()
 
 
