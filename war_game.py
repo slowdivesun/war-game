@@ -99,7 +99,7 @@ def draw_bonus_slider():
     )
 
 
-def create_buttons(x, y, w, h, font, text, k, g, color=WHITE):
+def create_button(x, y, w, h, font, text, k, g, color=WHITE):
     button = pygame.Rect(x, y, w, h)
     pygame.draw.rect(DISPLAYSURF, color, button)
     button_text = font.render(text, True, BLACK)
@@ -144,8 +144,6 @@ class Enemy(pygame.sprite.Sprite):
         self.selected = False
 
     def change_angle(self, direction):
-        print("Left" if direction == 1 else "Right")
-        print(self.right_facing, self.angle + 10 * direction)
         if (
             (self.right_facing)
             and (self.angle + 10 * direction <= 90)
@@ -175,7 +173,6 @@ class Enemy(pygame.sprite.Sprite):
         self.angle = -1 * self.angle + 180
         self.right_facing = not self.right_facing
         self.rect.topleft = self.left, self.top
-        print(self.angle)
 
     def location(self):
         return self.rect.left, self.rect.top
@@ -368,7 +365,7 @@ def start():
     bullet_group = pygame.sprite.Group()
     bomb_group = pygame.sprite.Group()
 
-    create_buttons(550, 10, 120, 50, font, "Quit", 580, 15)
+    create_button(550, 10, 120, 50, font, "Quit", 580, 15)
 
     game = True
     won = False
@@ -381,6 +378,7 @@ def start():
     restart_button = None
     rotate_left_button = None
     rotate_right_button = None
+    menu_button = None
     flip_button = None
 
     while game:
@@ -388,6 +386,10 @@ def start():
         # Game Won
         if soldier.rect.colliderect(target.rect):
             won = True
+        if len(pygame.sprite.spritecollide(soldier, bullet_group, True)) > 0:
+            killed = True
+        if explosion_group.sprite != None:
+            killed = True
         for event in pygame.event.get():
             # Make new bullets
             if (event.type == bullet_event) and begin and (not won) and (not killed):
@@ -454,6 +456,8 @@ def start():
                     killed = False
                     soldier.restart()
                     bomb_group.empty()
+                    explosion_group.empty()
+                    bullet_group.empty()
                     restart_button = None
                 if (
                     (rotate_left_button != None)
@@ -473,6 +477,16 @@ def start():
                     and flip_button.collidepoint(pygame.mouse.get_pos())
                 ):
                     selected_enemy.flip_enemy()
+                if (menu_button != None) and (
+                    menu_button.collidepoint(pygame.mouse.get_pos())
+                ):
+                    begin = False
+                    won = False
+                    killed = False
+                    bomb_group.empty()
+                    explosion_group.empty()
+                    bullet_group.empty()
+                    main_menu()
             elif event.type == pygame.MOUSEBUTTONUP:
                 for enemy in enemy_group:
                     enemy.clicked = False
@@ -507,43 +521,53 @@ def start():
         explosion_group.draw(DISPLAYSURF)
 
         # Call Update Function of all Sprites
+        # Don't draw buttons if game has begun
         if (begin) and (not won) and (not killed):
             allsprites.update(direction)
             bullet_group.update(dt)
             bomb_group.update(dt)
             explosion_group.update()
 
-        # Button to start the game
+        # Buttons to start the game and change parameters
         if not begin:
-            begin_button = create_buttons(
+            begin_button = create_button(
                 650, 500, 100, 40, font, "Begin", 680, 505, (17, 125, 28)
             )
             if is_selected:
-                rotate_left_button = create_buttons(
+                rotate_left_button = create_button(
                     450, 500, 150, 40, font, "Rotate(L)", 680, 505, (17, 125, 28)
                 )
-                rotate_right_button = create_buttons(
+                rotate_right_button = create_button(
                     250, 500, 150, 40, font, "Rotate(R)", 680, 505, (17, 125, 28)
                 )
-                flip_button = create_buttons(
+                flip_button = create_button(
                     50, 500, 100, 40, font, "Flip", 680, 505, (17, 125, 28)
                 )
             else:
-                rotate_left_button = create_buttons(
+                rotate_left_button = create_button(
                     450, 500, 150, 40, font, "Rotate(L)", 680, 505, (96, 102, 97)
                 )
-                rotate_right_button = create_buttons(
+                rotate_right_button = create_button(
                     250, 500, 150, 40, font, "Rotate(R)", 680, 505, (96, 102, 97)
                 )
-                flip_button = create_buttons(
+                flip_button = create_button(
                     50, 500, 100, 40, font, "Flip", 680, 505, (96, 102, 97)
                 )
 
         # Display restart button if game has ended
         if won or killed:
-            restart_button = create_buttons(
+            restart_button = create_button(
                 650, 500, 120, 40, font, "Restart", 680, 505, (17, 125, 28)
             )
+            menu_button = create_button(
+                450, 500, 120, 40, font, "Menu", 680, 505, (17, 125, 28)
+            )
+
+        if won:
+            pass
+
+        if killed:
+            pass
 
         pygame.display.flip()
 
@@ -560,19 +584,17 @@ def main_menu():
     DISPLAYSURF.blit(background, (0, 0))
     pygame.display.flip()
 
-    i = 1
     while True:
-        i += 1
         DISPLAYSURF.blit(background, (0, 0))
         draw_enemy_slider()
         draw_civilian_slider()
         draw_bonus_slider()
-        button1 = create_buttons(
+        button1 = create_button(
             380, 500, 120, 50, pygame.font.SysFont("Arial", 30), "START", 410, 505
         )
-        create_buttons(110, 150, 130, 50, font, "Obstacles", 114.5, 155)
-        create_buttons(110, 240, 130, 50, font, "Bonus", 114.5, 155)
-        create_buttons(110, 330, 130, 50, font, "Civilians", 114.5, 155)
+        create_button(110, 150, 130, 50, font, "Obstacles", 114.5, 155)
+        create_button(110, 240, 130, 50, font, "Bonus", 114.5, 155)
+        create_button(110, 330, 130, 50, font, "Civilians", 114.5, 155)
         buttons = [button1]  # NOTE: removed button3,button4 from list
         draw_text("Choose parameters", font, (255, 255, 255), 340, 10)
         for event in pygame.event.get():
@@ -582,16 +604,6 @@ def main_menu():
 
             elif event.type == pygame.MOUSEMOTION:
                 if event.buttons[0] == 1:  # if left button is pressed
-                    # move slider knob
-                    # slider_knob_x = min(
-                    #     max(event.pos[0], slider_x), slider_x + slider_width
-                    # )
-                    # slider_value = round(
-                    #     slider_min
-                    #     + (slider_max - slider_min)
-                    #     * (slider_knob_x - slider_x)
-                    #     / slider_width
-                    # )
                     if e_slider.slider_rect.collidepoint(pygame.mouse.get_pos()):
                         e_slider.slider_value = e_slider.find_value(event)
                     if b_slider.slider_rect.collidepoint(pygame.mouse.get_pos()):
