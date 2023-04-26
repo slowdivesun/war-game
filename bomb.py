@@ -3,7 +3,7 @@ import os
 from pygame.locals import *
 import math
 from load_image import load_image
-from explosion_group import explosion_group
+from groups import explosion_group
 
 bomb_speed = 0.4
 

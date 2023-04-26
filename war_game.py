@@ -8,7 +8,7 @@ from bonus import Bonus
 from sliders import CivilianSlider, BonusSlider, EnemySlider
 import random
 from load_image import load_image
-from explosion_group import explosion_group
+from groups import explosion_group
 
 if not pygame.font:
     print("Warning, fonts disabled")
@@ -49,27 +49,12 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GRAY = (128, 128, 128)
 
-# Define slider
-slider_width = 300
-slider_height = 10
-slider_x = (disp_width / 2) - (slider_width / 2)
-slider_y = 170
-slider_min = 0
-slider_max = 10
-slider_value = 5
-slider_rect = pygame.Rect(slider_x, slider_y, slider_width, slider_height)
-slider_knob_radius = 8
-slider_knob_x = slider_x + int(
-    (slider_value - slider_min) / (slider_max - slider_min) * slider_width
-)
-slider_knob_y = slider_y + int(slider_height / 2)
-
 
 # Define Fonts
 font = pygame.font.SysFont("bahnschrift", 30)  # NOTE: font size
 
 # Define Constants
-bullet_speed = 1
+bullet_speed = 0.2
 FPS = pygame.time.Clock()
 begin = False
 
@@ -143,7 +128,7 @@ class Target(pygame.sprite.Sprite):
 
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, left, top, angle=30):
+    def __init__(self, left, top, angle=0):
         pygame.sprite.Sprite.__init__(self)
         self.image, self.rect = load_image("enemy.png", -1, 0.08, angle)
         screen = pygame.display.get_surface()
@@ -152,16 +137,45 @@ class Enemy(pygame.sprite.Sprite):
         self.top = top
         self.rect.topleft = left, top
         self.angle = angle
+        self.right_facing = True
 
         # NOTE: drag and drop
         self.clicked = False
         self.selected = False
 
-    def change_angle(self):
-        if self.angle + 10 <= 90:
-            self.image, self.rect = load_image("enemy.png", -1, 0.08, self.angle + 10)
-            self.angle += 10
+    def change_angle(self, direction):
+        print("Left" if direction == 1 else "Right")
+        print(self.right_facing, self.angle + 10 * direction)
+        if (
+            (self.right_facing)
+            and (self.angle + 10 * direction <= 90)
+            and (self.angle + 10 * direction >= -90)
+        ):
+            self.angle += 10 * direction
+            self.image, self.rect = load_image("enemy.png", -1, 0.08, self.angle)
             self.rect.topleft = self.left, self.top
+        if (
+            (not self.right_facing)
+            and (self.angle + 10 * direction >= 90)
+            and (self.angle + 10 * direction <= 270)
+        ):
+            self.angle += 10 * direction
+            self.image, self.rect = load_image(
+                "enemy.png", -1, 0.08, (180 - self.angle)
+            )
+            self.angle = 180 - self.angle
+            self.flip_enemy()
+            self.right_facing = False
+            self.rect.topleft = self.left, self.top
+
+    def flip_enemy(self):
+        self.image = self.image.copy()
+        self.image = pygame.transform.flip(self.image, True, False)
+        self.rect = self.image.get_rect()
+        self.angle = -1 * self.angle + 180
+        self.right_facing = not self.right_facing
+        self.rect.topleft = self.left, self.top
+        print(self.angle)
 
     def location(self):
         return self.rect.left, self.rect.top
@@ -259,6 +273,18 @@ def draw_enemies(count):
     return enemies
 
 
+def draw_civilians(count):
+    civilians = []
+    left = 5
+    top = 10 + load_image("enemy.png")[0].get_height() * 0.08
+    img_width = load_image("civilian.png")[0].get_width() * 0.05
+
+    for i in range(count):
+        civilians.append(Civilian(left + (img_width + 40) * i, top))
+
+    return civilians
+
+
 def check_collision(new_x, new_y, ew, eh, targ):
     if new_x + ew > targ.rect.left - 2 and new_x + ew < targ.rect.right + 2:
         if new_y + eh > targ.rect.top - 2 and new_y + eh < targ.rect.bottom + 2:
@@ -334,9 +360,11 @@ def start():
 
     soldier = Soldier()
     target = Target()
-    enemies = draw_enemies(slider_value)
+    enemies = draw_enemies(e_slider.slider_value)
+    civilians = draw_civilians(c_slider.slider_value)
     allsprites = pygame.sprite.RenderPlain((soldier, target))
     enemy_group = pygame.sprite.Group(tuple(enemies))
+    civilian_group = pygame.sprite.Group(tuple(civilians))
     bullet_group = pygame.sprite.Group()
     bomb_group = pygame.sprite.Group()
 
@@ -351,7 +379,9 @@ def start():
     global begin
     begin_button = None
     restart_button = None
-    rotate_button = None
+    rotate_left_button = None
+    rotate_right_button = None
+    flip_button = None
 
     while game:
         direction = -1
@@ -426,12 +456,23 @@ def start():
                     bomb_group.empty()
                     restart_button = None
                 if (
-                    (rotate_button != None)
+                    (rotate_left_button != None)
                     and is_selected
-                    and rotate_button.collidepoint(pygame.mouse.get_pos())
+                    and rotate_left_button.collidepoint(pygame.mouse.get_pos())
                 ):
-                    print("dbcs")
-                    selected_enemy.change_angle()
+                    selected_enemy.change_angle(1)
+                if (
+                    (rotate_right_button != None)
+                    and is_selected
+                    and rotate_right_button.collidepoint(pygame.mouse.get_pos())
+                ):
+                    selected_enemy.change_angle(-1)
+                if (
+                    (flip_button != None)
+                    and is_selected
+                    and flip_button.collidepoint(pygame.mouse.get_pos())
+                ):
+                    selected_enemy.flip_enemy()
             elif event.type == pygame.MOUSEBUTTONUP:
                 for enemy in enemy_group:
                     enemy.clicked = False
@@ -447,6 +488,8 @@ def start():
                     eh = enemy.rect.height
 
                     if not check_collision(new_x, new_y, ew, eh, target):
+                        enemy.left = pos[0] - (enemy.rect.width / 2)
+                        enemy.top = pos[1] - (enemy.rect.height / 2)
                         enemy.rect.topleft = pos[0] - (enemy.rect.width / 2), pos[1] - (
                             enemy.rect.height / 2
                         )
@@ -458,6 +501,7 @@ def start():
         DISPLAYSURF.blit(background, (0, 0))
         allsprites.draw(DISPLAYSURF)
         enemy_group.draw(DISPLAYSURF)
+        # civilian_group.draw(DISPLAYSURF)
         bullet_group.draw(DISPLAYSURF)
         bomb_group.draw(DISPLAYSURF)
         explosion_group.draw(DISPLAYSURF)
@@ -475,12 +519,24 @@ def start():
                 650, 500, 100, 40, font, "Begin", 680, 505, (17, 125, 28)
             )
             if is_selected:
-                rotate_button = create_buttons(
-                    450, 500, 100, 40, font, "Rotate", 680, 505, (17, 125, 28)
+                rotate_left_button = create_buttons(
+                    450, 500, 150, 40, font, "Rotate(L)", 680, 505, (17, 125, 28)
+                )
+                rotate_right_button = create_buttons(
+                    250, 500, 150, 40, font, "Rotate(R)", 680, 505, (17, 125, 28)
+                )
+                flip_button = create_buttons(
+                    50, 500, 100, 40, font, "Flip", 680, 505, (17, 125, 28)
                 )
             else:
-                rotate_button = create_buttons(
-                    450, 500, 100, 40, font, "Rotate", 680, 505, (96, 102, 97)
+                rotate_left_button = create_buttons(
+                    450, 500, 150, 40, font, "Rotate(L)", 680, 505, (96, 102, 97)
+                )
+                rotate_right_button = create_buttons(
+                    250, 500, 150, 40, font, "Rotate(R)", 680, 505, (96, 102, 97)
+                )
+                flip_button = create_buttons(
+                    50, 500, 100, 40, font, "Flip", 680, 505, (96, 102, 97)
                 )
 
         # Display restart button if game has ended
@@ -495,9 +551,6 @@ def start():
 
 
 def main_menu():
-    global slider_value
-    global slider_knob_x
-    global slider_knob_y
     pygame.display.set_caption("Settings")
     background = pygame.Surface(DISPLAYSURF.get_size())
     background = background.convert()
