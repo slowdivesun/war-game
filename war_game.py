@@ -5,7 +5,13 @@ import math
 from bomb import Bomb
 from civilian import Civilian
 from bonus import Bonus
-from sliders import CivilianSlider, BonusSlider, EnemySlider
+from sliders import (
+    CivilianSlider,
+    BonusSlider,
+    EnemySlider,
+    CivilianTargetSlider,
+    BonusTargetSlider,
+)
 import random
 from load_image import load_image
 from groups import explosion_group
@@ -67,35 +73,17 @@ def draw_text(text, font, text_color, x, y):
 e_slider = EnemySlider()
 c_slider = CivilianSlider()
 b_slider = BonusSlider()
+ct_slider = CivilianTargetSlider()
+bt_slider = BonusTargetSlider()
 
 
-def draw_enemy_slider():
-    pygame.draw.rect(DISPLAYSURF, GRAY, e_slider.slider_rect)
+def draw_slider(s):
+    pygame.draw.rect(DISPLAYSURF, GRAY, s.slider_rect)
     pygame.draw.circle(
         DISPLAYSURF,
         WHITE,
-        (e_slider.slider_knob_x, e_slider.slider_knob_y),
-        e_slider.slider_knob_radius,
-    )
-
-
-def draw_civilian_slider():
-    pygame.draw.rect(DISPLAYSURF, GRAY, c_slider.slider_rect)
-    pygame.draw.circle(
-        DISPLAYSURF,
-        WHITE,
-        (c_slider.slider_knob_x, c_slider.slider_knob_y),
-        c_slider.slider_knob_radius,
-    )
-
-
-def draw_bonus_slider():
-    pygame.draw.rect(DISPLAYSURF, GRAY, b_slider.slider_rect)
-    pygame.draw.circle(
-        DISPLAYSURF,
-        WHITE,
-        (b_slider.slider_knob_x, b_slider.slider_knob_y),
-        b_slider.slider_knob_radius,
+        (s.slider_knob_x, s.slider_knob_y),
+        s.slider_knob_radius,
     )
 
 
@@ -273,7 +261,7 @@ def draw_enemies(count):
 def draw_civilians(count):
     civilians = []
     left = 5
-    top = 10 + load_image("enemy.png")[0].get_height() * 0.08
+    top = disp_height - 10 - load_image("enemy.png")[0].get_height() * 0.08
     img_width = load_image("civilian.png")[0].get_width() * 0.05
 
     for i in range(count):
@@ -365,7 +353,7 @@ def start():
     bullet_group = pygame.sprite.Group()
     bomb_group = pygame.sprite.Group()
 
-    create_button(550, 10, 120, 50, font, "Quit", 580, 15)
+    # create_button(550, 10, 120, 50, font, "Quit", 580, 15)
 
     game = True
     won = False
@@ -507,6 +495,10 @@ def start():
                         enemy.rect.topleft = pos[0] - (enemy.rect.width / 2), pos[1] - (
                             enemy.rect.height / 2
                         )
+        # update bomb target coordinates
+        for b in bomb_group:
+            b.lim_x = soldier.rect.center[0]
+            b.lim_y = soldier.rect.center[1]
 
         # Time Elapsed
         dt = FPS.tick(60)
@@ -515,7 +507,7 @@ def start():
         DISPLAYSURF.blit(background, (0, 0))
         allsprites.draw(DISPLAYSURF)
         enemy_group.draw(DISPLAYSURF)
-        # civilian_group.draw(DISPLAYSURF)
+        civilian_group.draw(DISPLAYSURF)
         bullet_group.draw(DISPLAYSURF)
         bomb_group.draw(DISPLAYSURF)
         explosion_group.draw(DISPLAYSURF)
@@ -586,15 +578,45 @@ def main_menu():
 
     while True:
         DISPLAYSURF.blit(background, (0, 0))
-        draw_enemy_slider()
-        draw_civilian_slider()
-        draw_bonus_slider()
+        draw_slider(e_slider)
+        draw_slider(c_slider)
+        draw_slider(b_slider)
+        draw_slider(ct_slider)
+        draw_slider(bt_slider)
         button1 = create_button(
             380, 500, 120, 50, pygame.font.SysFont("Arial", 30), "START", 410, 505
         )
-        create_button(110, 150, 130, 50, font, "Obstacles", 114.5, 155)
-        create_button(110, 240, 130, 50, font, "Bonus", 114.5, 155)
-        create_button(110, 330, 130, 50, font, "Civilians", 114.5, 155)
+        menu_btn_width = 150
+        create_button(
+            disp_width / 10 - menu_btn_width / 2,
+            150,
+            menu_btn_width,
+            50,
+            font,
+            "Obstacles",
+            114.5,
+            155,
+        )
+        create_button(
+            disp_width / 10 - menu_btn_width / 2,
+            240,
+            menu_btn_width,
+            50,
+            font,
+            "Bonus",
+            114.5,
+            155,
+        )
+        create_button(
+            disp_width / 10 - menu_btn_width / 2,
+            330,
+            menu_btn_width,
+            50,
+            font,
+            "Civilians",
+            114.5,
+            155,
+        )
         buttons = [button1]  # NOTE: removed button3,button4 from list
         draw_text("Choose parameters", font, (255, 255, 255), 340, 10)
         for event in pygame.event.get():

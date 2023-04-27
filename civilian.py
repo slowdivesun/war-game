@@ -12,6 +12,7 @@ class Civilian(pygame.sprite.Sprite):
         screen = pygame.display.get_surface()
         self.area = screen.get_rect()
         self.rect.topleft = x, y
+        self.incident = False  # Sodlier is near this civilian
 
     def rescued(self):
         self.kill()
