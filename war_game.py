@@ -67,14 +67,14 @@ begin = False
 
 def draw_text(text, font, text_color, x, y):
     img = font.render(text, True, text_color)
-    DISPLAYSURF.blit(img, (x, y))
+    DISPLAYSURF.blit(img, (x - img.get_width() / 2, y))
 
 
 e_slider = EnemySlider()
 c_slider = CivilianSlider()
 b_slider = BonusSlider()
-ct_slider = CivilianTargetSlider()
-bt_slider = BonusTargetSlider()
+ct_slider = CivilianTargetSlider(c_slider)
+bt_slider = BonusTargetSlider(b_slider)
 
 
 def draw_slider(s):
@@ -347,6 +347,8 @@ def start():
     target = Target()
     enemies = draw_enemies(e_slider.slider_value)
     civilians = draw_civilians(c_slider.slider_value)
+    civilian_target = ct_slider.slider_value
+    bonus_target = bt_slider.slider_value
     allsprites = pygame.sprite.RenderPlain((soldier, target))
     enemy_group = pygame.sprite.Group(tuple(enemies))
     civilian_group = pygame.sprite.Group(tuple(civilians))
@@ -618,7 +620,7 @@ def main_menu():
             155,
         )
         buttons = [button1]  # NOTE: removed button3,button4 from list
-        draw_text("Choose parameters", font, (255, 255, 255), 340, 10)
+        draw_text("Choose parameters", font, (255, 255, 255), disp_width / 2, 10)
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
@@ -630,8 +632,14 @@ def main_menu():
                         e_slider.slider_value = e_slider.find_value(event)
                     if b_slider.slider_rect.collidepoint(pygame.mouse.get_pos()):
                         b_slider.slider_value = b_slider.find_value(event)
+                        bt_slider.update()
                     if c_slider.slider_rect.collidepoint(pygame.mouse.get_pos()):
                         c_slider.slider_value = c_slider.find_value(event)
+                        ct_slider.update()
+                    if ct_slider.slider_rect.collidepoint(pygame.mouse.get_pos()):
+                        ct_slider.slider_value = ct_slider.find_value(event)
+                    if bt_slider.slider_rect.collidepoint(pygame.mouse.get_pos()):
+                        bt_slider.slider_value = bt_slider.find_value(event)
 
             elif event.type == MOUSEBUTTONDOWN:
                 for btn in buttons:
@@ -645,22 +653,36 @@ def main_menu():
             str(e_slider.slider_value),
             font,
             WHITE,
-            e_slider.slider_knob_x - 10,
+            e_slider.slider_knob_x,
             e_slider.slider_y - 40,
         )
         draw_text(
             str(b_slider.slider_value),
             font,
             WHITE,
-            b_slider.slider_knob_x - 10,
+            b_slider.slider_knob_x,
             b_slider.slider_y - 40,
         )
         draw_text(
             str(c_slider.slider_value),
             font,
             WHITE,
-            c_slider.slider_knob_x - 10,
+            c_slider.slider_knob_x,
             c_slider.slider_y - 40,
+        )
+        draw_text(
+            str(ct_slider.slider_value),
+            font,
+            WHITE,
+            ct_slider.slider_knob_x,
+            ct_slider.slider_y - 40,
+        )
+        draw_text(
+            str(bt_slider.slider_value),
+            font,
+            WHITE,
+            bt_slider.slider_knob_x,
+            bt_slider.slider_y - 40,
         )
         pygame.display.update()
 
