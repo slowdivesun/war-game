@@ -1227,135 +1227,130 @@ def intermediate():
 
 def new_main_menu():
     global checked
-    global slider_value
+
     pygame.display.set_caption("Main Page")
     background = pygame.Surface(DISPLAYSURF.get_size())
     background = background.convert()
     background.fill((0, 0, 0))
-    # Display The Background
     DISPLAYSURF.blit(background, (0, 0))
+
     home_img = pygame.image.load(get_full_path("soldier_home.png"))
     home_img = pygame.transform.scale(home_img, (450, 400))
     icon_img = pygame.image.load(get_full_path("icon.png"))
     icon_img = pygame.transform.scale(icon_img, (130, 80))
-    background1 = pygame.Surface((900, 520))
+    background1 = pygame.Surface((disp_width, 0.85 * disp_height))
     background1.fill("#333333")
-    while True:  # main game loop
+
+    upper_strip = disp_height * 0.15
+    topbar_btn_width = disp_width / 6
+
+    while True:
         DISPLAYSURF.blit(background, (0, 0))
-        DISPLAYSURF.blit(background1, (0, 80))
+        DISPLAYSURF.blit(background1, (0, 0.15 * disp_height))
         background1.blit(home_img, (25, 10))
-        DISPLAYSURF.blit(icon_img, (10, 0))
-        starts = create_button_new(
-            600,
-            330,
-            140,
+        DISPLAYSURF.blit(icon_img, (10, upper_strip / 2 - icon_img.get_height() / 2))
+        starts = create_button_func(
+            2 * disp_width / 3,
+            disp_height / 2,
+            topbar_btn_width,
             35,
             pygame.font.SysFont("Arial", 23),
             "START",
-            630,
-            335,
+            DISPLAYSURF,
             (255, 255, 255),
             "#ed5e3e",
         )
         if starts.collidepoint(pygame.mouse.get_pos()):
-            starts = create_button_new(
-                600,
-                330,
-                140,
+            starts = create_button_func(
+                2 * disp_width / 3,
+                disp_height / 2,
+                topbar_btn_width,
                 35,
                 pygame.font.SysFont("Arial", 23),
                 "START",
-                630,
-                335,
+                DISPLAYSURF,
                 (255, 255, 255),
                 "#f9430a",
             )
         else:
-            starts = create_button_new(
-                600,
-                330,
-                140,
+            starts = create_button_func(
+                2 * disp_width / 3,
+                disp_height / 2,
+                topbar_btn_width,
                 35,
                 pygame.font.SysFont("Arial", 23),
                 "START",
-                630,
-                335,
+                DISPLAYSURF,
                 (255, 255, 255),
                 "#ed5e3e",
             )
-        settings = create_button_new(
-            620,
+        settings = create_button_func(
+            disp_width / 2 + topbar_btn_width,
             0,
-            130,
-            80,
+            topbar_btn_width,
+            upper_strip,
             pygame.font.SysFont("BOLD", 25),
             "SETTINGS",
-            630,
-            30,
+            DISPLAYSURF,
             (255, 255, 255),
             (0, 0, 0),
         )
         if settings.collidepoint(pygame.mouse.get_pos()):
-            settings = create_button_new(
-                620,
+            settings = create_button_func(
+                disp_width / 2 + topbar_btn_width,
                 0,
-                130,
-                80,
+                topbar_btn_width,
+                upper_strip,
                 pygame.font.SysFont("BOLD", 25),
                 "SETTINGS",
-                630,
-                30,
+                DISPLAYSURF,
                 (255, 255, 255),
                 "#232023",
             )
         else:
-            settings = create_button_new(
-                620,
+            settings = create_button_func(
+                disp_width / 2 + topbar_btn_width,
                 0,
-                130,
-                80,
+                topbar_btn_width,
+                upper_strip,
                 pygame.font.SysFont("BOLD", 25),
                 "SETTINGS",
-                630,
-                30,
+                DISPLAYSURF,
                 (255, 255, 255),
                 (0, 0, 0),
             )
-        about = create_button_new(
-            750,
+        about = create_button_func(
+            disp_width / 2 + 2 * topbar_btn_width,
             0,
-            130,
-            80,
+            topbar_btn_width,
+            upper_strip,
             pygame.font.SysFont("BOLD", 25),
             "ABOUT",
-            780,
-            30,
+            DISPLAYSURF,
             (255, 255, 255),
             (0, 0, 0),
         )
         if about.collidepoint(pygame.mouse.get_pos()):
-            about = create_button_new(
-                750,
+            about = create_button_func(
+                disp_width / 2 + 2 * topbar_btn_width,
                 0,
-                130,
-                80,
+                topbar_btn_width,
+                upper_strip,
                 pygame.font.SysFont("BOLD", 25),
                 "ABOUT",
-                780,
-                30,
+                DISPLAYSURF,
                 (255, 255, 255),
                 "#232023",
             )
         else:
-            about = create_button_new(
-                750,
+            about = create_button_func(
+                disp_width / 2 + 2 * topbar_btn_width,
                 0,
-                130,
-                80,
+                topbar_btn_width,
+                upper_strip,
                 pygame.font.SysFont("BOLD", 25),
                 "ABOUT",
-                780,
-                30,
+                DISPLAYSURF,
                 (255, 255, 255),
                 (0, 0, 0),
             )
@@ -1364,31 +1359,39 @@ def new_main_menu():
         )
 
         buttons = [starts, games, settings, about]
-        draw_text(
-            "HOME", pygame.font.SysFont("BOLD", 25), "#f9430a", 530, 30, DISPLAYSURF
+        draw_text_middle(
+            "HOME",
+            pygame.font.SysFont("BOLD", 25),
+            "#f9430a",
+            disp_width / 2 + topbar_btn_width / 2,
+            upper_strip / 2,
+            DISPLAYSURF,
         )
         draw_text(
             "UNLEASH YOUR",
             pygame.font.SysFont("impact", 35),
             (255, 255, 255),
-            590,
-            180,
+            2 * disp_width / 3,
+            disp_height / 4,
             DISPLAYSURF,
         )
         draw_text(
             "INNER",
             pygame.font.SysFont("impact", 35),
             (255, 255, 255),
-            590,
-            230,
+            2 * disp_width / 3,
+            disp_height / 4 + 40,
             DISPLAYSURF,
         )
         draw_text(
             "WARRIOR",
             pygame.font.SysFont("impact", 35),
             "#f9430a",
-            680,
-            230,
+            2 * disp_width / 3
+            + pygame.font.SysFont("impact", 35)
+            .render("INNER ", True, (255, 255, 255))
+            .get_width(),
+            disp_height / 4 + 40,
             DISPLAYSURF,
         )
         draw_text(
