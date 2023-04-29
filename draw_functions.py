@@ -16,6 +16,11 @@ def draw_text_right_align(text, font, text_color, x, y, surf):
     surf.blit(img, (x - img.get_width(), y - img.get_height() / 2))
 
 
+def draw_text_left_align(text, font, text_color, x, y, surf):
+    img = font.render(text, True, text_color)
+    surf.blit(img, (x, y - img.get_height() / 2))
+
+
 def create_button_func(
     x, y, w, h, font, text, surf, color=(0, 0, 0), back_col=(255, 255, 255)
 ):

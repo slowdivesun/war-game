@@ -1394,20 +1394,23 @@ def new_main_menu():
             disp_height / 4 + 40,
             DISPLAYSURF,
         )
-        draw_text(
+        draw_text_left_align(
             "OBSTACLES :",
             pygame.font.SysFont("BOLD", 30),
             "#f9430a",
-            300,
-            330,
+            disp_width / 3,
+            disp_height / 2 + 35 / 2,
             DISPLAYSURF,
         )
-        draw_text(
+        draw_text_left_align(
             str(e_slider.slider_value),
             pygame.font.SysFont("BOLD", 30),
             "#ffffff",
-            440,
-            330,
+            disp_width / 3
+            + pygame.font.SysFont("BOLD", 30)
+            .render("OBSTACLES : ", True, WHITE)
+            .get_width(),
+            disp_height / 2 + 35 / 2,
             DISPLAYSURF,
         )
         for event in pygame.event.get():
