@@ -62,6 +62,7 @@ BTN_GREEN = (96, 102, 97)
 # Define Fonts
 font = pygame.font.SysFont("bahnschrift", 30)  # NOTE: font size
 emoji_font = pygame.font.SysFont("segoeuisymbol", 30)
+arial_font = pygame.font.SysFont("Arial", 30)
 
 # Define Constants
 bullet_speed = 0.2
@@ -86,11 +87,6 @@ btn_row_top_margin = 7 * btn_row_height
 btn_y = btn_row_top_margin + btn_row_height / 2
 
 
-# def draw_text(text, font, text_color, x, y):
-#     img = font.render(text, True, text_color)
-#     DISPLAYSURF.blit(img, (x - img.get_width() / 2, y))
-
-
 e_slider = EnemySlider()
 c_slider = CivilianSlider()
 b_slider = BonusSlider()
@@ -100,10 +96,11 @@ all_sliders = [e_slider, c_slider, b_slider, ct_slider, bt_slider]
 
 
 def draw_slider(s):
+    s.draw_bg(DISPLAYSURF)
     pygame.draw.rect(DISPLAYSURF, GRAY, s.slider_rect)
     pygame.draw.circle(
         DISPLAYSURF,
-        WHITE,
+        "#f9430a",
         (s.slider_knob_x, s.slider_knob_y),
         s.slider_knob_radius,
     )
@@ -206,6 +203,8 @@ class Enemy(pygame.sprite.Sprite):
         self.rect.topleft = self.left, self.top
 
     def random_reorientation(self, x, y):
+        print(self.left, self.top)
+        print(self.rect.topleft)
         new_angle = math.atan2(self.rect.center[1] - y, x - self.rect.center[0])
         print("in radian: ", new_angle)
         new_angle = math.degrees(new_angle)
@@ -223,9 +222,25 @@ class Enemy(pygame.sprite.Sprite):
         else:
             self.angle = new_angle
             self.image, self.rect = load_image("enemy.png", -1, 0.08, self.angle)
+        self.rect.topleft = self.left, self.top
 
     def location(self):
         return self.rect.left, self.rect.top
+
+    def update(self, x, y):
+        # pygame.draw.line(
+        #     DISPLAYSURF, "red", (x, y), (self.rect.center[0], self.rect.center[1])
+        # )
+        # pygame.draw.line(
+        #     DISPLAYSURF,
+        #     "blue",
+        #     (self.rect.center[0], self.rect.center[1]),
+        #     (
+        #         self.rect.center[0] + math.cos(math.radians(self.angle)) * 900,
+        #         self.rect.center[1] - math.sin(math.radians(self.angle)) * 900,
+        #     ),
+        # )
+        pass
 
 
 class Bullet(pygame.sprite.Sprite):
@@ -246,12 +261,25 @@ class Bullet(pygame.sprite.Sprite):
             - (self.enemy.rect.height / 2) * math.sin(math.radians(self.angle))
             - (self.rect.height / 2) * math.sin(math.radians(self.angle)),
         )
+        self.isRandom = enemy.isRandom
+        self.positionx = self.rect.center[0]
+        self.positiony = self.rect.center[1]
 
-    def update(self, dt):
+    def update(self, dt, x, y):
+        # original
+        # center = calculate_new_xy(
+        #     self.rect.center, bullet_speed, math.radians(self.angle), dt
+        # )
+        # self.rect.center = center
+        # pygame.draw.line(
+        #     DISPLAYSURF, WHITE, (self.rect.center[0], self.rect.center[1]), (x, y)
+        # )
         center = calculate_new_xy(
-            self.rect.center, bullet_speed, math.radians(self.angle), dt
+            (self.positionx, self.positiony), bullet_speed, math.radians(self.angle), dt
         )
-        self.rect.center = center
+        self.positionx = center[0]
+        self.positiony = center[1]
+        self.rect.center = (round(self.positionx), round(self.positiony))
         # print(self.rect.center)
         # NOTE: Bullet leaves the screen
         if not DISPLAYSURF.get_rect().contains(self.rect):
@@ -469,6 +497,7 @@ def start():
                 for enemy in enemy_group:
                     enemy.random_reorientation(sold_x, sold_y)
                     bullet = Bullet(enemy)
+
                     bullet_group.add(bullet)
             # Make new bombs
             if (event.type == bomb_event) and begin and (not won) and (not killed):
@@ -645,8 +674,9 @@ def start():
         # Don't draw buttons if game has begun
         if (begin) and (not won) and (not killed):
             soldier_group.update(direction)
-            bullet_group.update(dt)
+            bullet_group.update(dt, soldier.rect.center[0], soldier.rect.center[1])
             bomb_group.update(dt)
+            enemy_group.update(soldier.rect.center[0], soldier.rect.center[1])
             for civ in civilian_group:
                 if civ.rect.colliderect(soldier.rect):
                     civ.incident = True
@@ -779,125 +809,6 @@ def start():
     pygame.quit()
 
 
-# def main_menu():
-#     pygame.display.set_caption("Settings")
-#     background = pygame.Surface(DISPLAYSURF.get_size())
-#     background = background.convert()
-#     background.fill("#aaeebb")
-
-#     # Display The Background
-#     DISPLAYSURF.blit(background, (0, 0))
-#     pygame.display.flip()
-
-#     while True:
-#         DISPLAYSURF.blit(background, (0, 0))
-#         draw_slider(e_slider)
-#         draw_slider(c_slider)
-#         draw_slider(b_slider)
-#         draw_slider(ct_slider)
-#         draw_slider(bt_slider)
-#         button1 = create_button(
-#             380, 500, 120, 50, pygame.font.SysFont("Arial", 30), "START", 410, 505
-#         )
-#         menu_btn_width = 150
-#         create_button(
-#             disp_width / 10 - menu_btn_width / 2,
-#             150,
-#             menu_btn_width,
-#             50,
-#             font,
-#             "Obstacles",
-#             114.5,
-#             155,
-#         )
-#         create_button(
-#             disp_width / 10 - menu_btn_width / 2,
-#             240,
-#             menu_btn_width,
-#             50,
-#             font,
-#             "Bonus",
-#             114.5,
-#             155,
-#         )
-#         create_button(
-#             disp_width / 10 - menu_btn_width / 2,
-#             330,
-#             menu_btn_width,
-#             50,
-#             font,
-#             "Civilians",
-#             114.5,
-#             155,
-#         )
-#         buttons = [button1]  # NOTE: removed button3,button4 from list
-#         draw_text("Choose parameters", font, (255, 255, 255), disp_width / 2, 10)
-#         for event in pygame.event.get():
-#             if event.type == QUIT:
-#                 pygame.quit()
-#                 sys.exit()
-
-#             elif event.type == pygame.MOUSEMOTION:
-#                 if event.buttons[0] == 1:  # if left button is pressed
-#                     if e_slider.slider_rect.collidepoint(pygame.mouse.get_pos()):
-#                         e_slider.slider_value = e_slider.find_value(event)
-#                     if b_slider.slider_rect.collidepoint(pygame.mouse.get_pos()):
-#                         b_slider.slider_value = b_slider.find_value(event)
-#                         bt_slider.update()
-#                     if c_slider.slider_rect.collidepoint(pygame.mouse.get_pos()):
-#                         c_slider.slider_value = c_slider.find_value(event)
-#                         ct_slider.update()
-#                     if ct_slider.slider_rect.collidepoint(pygame.mouse.get_pos()):
-#                         ct_slider.slider_value = ct_slider.find_value(event)
-#                     if bt_slider.slider_rect.collidepoint(pygame.mouse.get_pos()):
-#                         bt_slider.slider_value = bt_slider.find_value(event)
-
-#             elif event.type == MOUSEBUTTONDOWN:
-#                 for btn in buttons:
-#                     if btn.collidepoint(pygame.mouse.get_pos()):
-#                         if btn == button1:
-#                             start()
-#                         # elif btn == button3:
-#                         # elif btn == button4:
-
-#         draw_text(
-#             str(e_slider.slider_value),
-#             font,
-#             WHITE,
-#             e_slider.slider_knob_x,
-#             e_slider.slider_y - 40,
-#         )
-#         draw_text(
-#             str(b_slider.slider_value),
-#             font,
-#             WHITE,
-#             b_slider.slider_knob_x,
-#             b_slider.slider_y - 40,
-#         )
-#         draw_text(
-#             str(c_slider.slider_value),
-#             font,
-#             WHITE,
-#             c_slider.slider_knob_x,
-#             c_slider.slider_y - 40,
-#         )
-#         draw_text(
-#             str(ct_slider.slider_value),
-#             font,
-#             WHITE,
-#             ct_slider.slider_knob_x,
-#             ct_slider.slider_y - 40,
-#         )
-#         draw_text(
-#             str(bt_slider.slider_value),
-#             font,
-#             WHITE,
-#             bt_slider.slider_knob_x,
-#             bt_slider.slider_y - 40,
-#         )
-#         pygame.display.update()
-
-
 def go_settings():
     pygame.display.set_caption("Settings")
 
@@ -907,12 +818,10 @@ def go_settings():
     background_image = pygame.image.load(get_full_path("backl.jpg"))
     background_image.set_alpha(150)
     background_image = pygame.transform.scale(background_image, (900, 600))
-    # Create a surface for the background image
     background = pygame.Surface(DISPLAYSURF.get_size())
-    # Draw the background image onto the surface
     background.blit(background_image, (0, 0))
 
-    # Define the rectangle
+    # Define the rectangles
     rect = pygame.Rect(0, disp_height / 7, disp_width, 5 * disp_height / 7)
     rect_surf = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
     apply = pygame.Rect(
@@ -925,7 +834,7 @@ def go_settings():
     cancel_surf = pygame.Surface((cancel.width, cancel.height), pygame.SRCALPHA)
     apply_text = font.render("APPLY", True, (255, 255, 255))
     apply_text_rect = apply_text.get_rect(center=(apply.width // 2, apply.height // 2))
-    cancel_text = font.render("CANCEL", True, (255, 255, 255))
+    cancel_text = font.render("BACK", True, (255, 255, 255))
     cancel_text_rect = cancel_text.get_rect(
         center=(cancel.width // 2, cancel.height // 2)
     )
@@ -1063,7 +972,6 @@ def go_settings():
                 running = False
             elif event.type == pygame.MOUSEMOTION:
                 if event.buttons[0] == 1:  # if left button is pressed
-                    # move slider knob
                     if e_slider.slider_rect.collidepoint(pygame.mouse.get_pos()):
                         e_slider.slider_value = e_slider.find_value(event)
                     if b_slider.slider_rect.collidepoint(pygame.mouse.get_pos()):
@@ -1235,7 +1143,7 @@ def new_main_menu():
     DISPLAYSURF.blit(background, (0, 0))
 
     home_img = pygame.image.load(get_full_path("soldier_home.png"))
-    home_img = pygame.transform.scale(home_img, (450, 400))
+    home_img = pygame.transform.scale(home_img, (disp_width / 2, 0.8 * disp_height))
     icon_img = pygame.image.load(get_full_path("icon.png"))
     icon_img = pygame.transform.scale(icon_img, (130, 80))
     background1 = pygame.Surface((disp_width, 0.85 * disp_height))
@@ -1422,7 +1330,8 @@ def new_main_menu():
                     if btn.collidepoint(pygame.mouse.get_pos()):
                         if btn == starts:
                             if checked:
-                                intermediate()
+                                # intermediate()
+                                start()
                             else:
                                 start()
                         elif btn == about:

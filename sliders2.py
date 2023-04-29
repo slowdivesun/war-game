@@ -291,7 +291,12 @@ class BonusTargetSlider:
     def __init__(self, parent):
         self.parent = parent
         self.slider_max = parent.slider_value
-        self.slider_knob_x = self.slider_x
+        self.slider_knob_x = self.slider_x + int(
+            (self.slider_value - self.slider_min)
+            / (self.slider_max - self.slider_min)
+            * self.slider_width
+        )
+        pass
 
     def get_y(self, height):
         return (
@@ -396,7 +401,6 @@ class CivilianTargetSlider:
     def __init__(self, parent):
         self.parent = parent
         self.slider_max = parent.slider_value
-        self.slider_knob_x = self.slider_x
         pass
 
     def get_y(self, height):
