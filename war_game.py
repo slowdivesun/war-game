@@ -123,12 +123,13 @@ class Soldier(pygame.sprite.Sprite):
         screen = pygame.display.get_surface()
         self.area = screen.get_rect()
         self.rect.topleft = 350, 300
+        self.health = 3
         self.move = 18
         self.right_facing = True
-        self.health = 3
 
     def restart(self):
-        self.rect.topleft = 10, 90
+        self.rect.topleft = 350, 300
+        self.health = 3
 
     def update(self, direction):
         if direction == 2 and self.right_facing == True:
@@ -159,6 +160,29 @@ class Soldier(pygame.sprite.Sprite):
 
     def location(self):
         return self.rect.left, self.rect.top
+
+
+def display_health(sold):
+    pygame.draw.rect(
+        DISPLAYSURF,
+        (255, 0, 0),
+        pygame.Rect(
+            sold.rect.center[0] - 3 * 15 / 2,
+            sold.rect.topleft[1] - 10,
+            3 * 15,
+            5,
+        ),
+    )
+    pygame.draw.rect(
+        DISPLAYSURF,
+        (0, 128, 0),
+        (
+            sold.rect.center[0] - 3 * 15 / 2,
+            sold.rect.topleft[1] - 10,
+            (15 * (sold.health)),
+            5,
+        ),
+    )
 
 
 def check_collision(new_x, new_y, ew, eh, targ):
@@ -257,7 +281,6 @@ def start():
             )
         ) > 0:
             soldier.health -= number_of_strikes
-            print(number_of_strikes)
             if soldier.health <= 0:
                 killed = True
         if explosion_group.sprite != None:
@@ -270,7 +293,6 @@ def start():
                 for enemy in enemy_group:
                     enemy.random_reorientation(sold_x, sold_y)
                     bullet = Bullet(enemy)
-
                     bullet_group.add(bullet)
             # Make new bombs
             if (event.type == bomb_event) and begin and (not won) and (not killed):
@@ -289,7 +311,7 @@ def start():
                     sold_x,
                     sold_y,
                 )
-                bomb_group.add(bomb)
+                # bomb_group.add(bomb)
             if event.type == pygame.QUIT:
                 game = False
             elif event.type == pygame.KEYDOWN:
@@ -435,6 +457,7 @@ def start():
         DISPLAYSURF.blit(background, (0, 0))
         if not killed:
             soldier_group.draw(DISPLAYSURF)
+        display_health(soldier)
         target_group.draw(DISPLAYSURF)
         enemy_group.draw(DISPLAYSURF)
         bonus_group.draw(DISPLAYSURF)
