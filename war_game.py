@@ -2,10 +2,11 @@ import pygame, sys
 import os
 from pygame.locals import *
 import math
+from constants import *
 from bomb import Bomb, generate_bomb_coordinates
 from civilian import Civilian
 from bonus import Bonus
-from enemy import Enemy
+from enemy import Enemy, Bullet
 from sliders import (
     CivilianSlider,
     BonusSlider,
@@ -47,16 +48,7 @@ won_sound = pygame.mixer.Sound("./sounds/won.wav")
 
 
 # Create the Screen
-disp_width = 900
-disp_height = 600
 DISPLAYSURF = pygame.display.set_mode((disp_width, disp_height))
-
-# Define colors
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
-GRAY = (128, 128, 128)
-BTN_GRAY = (17, 125, 28)
-BTN_GREEN = (96, 102, 97)
 
 
 # Define Fonts
@@ -65,26 +57,9 @@ emoji_font = pygame.font.SysFont("segoeuisymbol", 30)
 arial_font = pygame.font.SysFont("Arial", 30)
 
 # Define Constants
-bullet_speed = 0.2
 FPS = pygame.time.Clock()
 begin = False
 checked = True
-
-# Button Parameters
-settings_btn_width = 150
-settings_btn_height = 40
-small_btn_width = 75
-flip_btn_order = 0
-rotater_btn_order = 1
-rotatel_btn_order = 1.5
-begin_btn_order = 2
-back_btn_order = 3
-info_btn_order = 3.5
-small_btn_col_width = disp_width / 10
-btn_col_width = disp_width / 5
-btn_row_height = disp_height / 8
-btn_row_top_margin = 7 * btn_row_height
-btn_y = btn_row_top_margin + btn_row_height / 2
 
 
 e_slider = EnemySlider()
@@ -152,55 +127,6 @@ class Target(pygame.sprite.Sprite):
 
     def location(self):
         return self.rect.left, self.rect.top
-
-
-class Bullet(pygame.sprite.Sprite):
-    def __init__(
-        self,
-        enemy,
-    ):
-        self.enemy = enemy
-        self.angle = self.enemy.angle
-        pygame.sprite.Sprite.__init__(self)
-        self.image, self.rect = load_image("bullet.png", -1, 0.02, self.angle)
-        screen = pygame.display.get_surface()
-        self.area = screen.get_rect()
-        self.rect.center = (
-            self.enemy.rect.center[0]
-            + (self.enemy.rect.width / 2) * math.cos(math.radians(self.angle)),
-            self.enemy.rect.center[1]
-            - (self.enemy.rect.height / 2) * math.sin(math.radians(self.angle))
-            - (self.rect.height / 2) * math.sin(math.radians(self.angle)),
-        )
-        self.isRandom = enemy.isRandom
-        self.positionx = self.rect.center[0]
-        self.positiony = self.rect.center[1]
-
-    def update(self, dt, x, y):
-        # original
-        # center = calculate_new_xy(
-        #     self.rect.center, bullet_speed, math.radians(self.angle), dt
-        # )
-        # self.rect.center = center
-        pygame.draw.line(
-            DISPLAYSURF, WHITE, (self.rect.center[0], self.rect.center[1]), (x, y)
-        )
-        center = calculate_new_xy(
-            (self.positionx, self.positiony), bullet_speed, math.radians(self.angle), dt
-        )
-        self.positionx = center[0]
-        self.positiony = center[1]
-        self.rect.center = (round(self.positionx), round(self.positiony))
-        # print(self.rect.center)
-        # NOTE: Bullet leaves the screen
-        if not DISPLAYSURF.get_rect().contains(self.rect):
-            self.kill()
-
-
-def calculate_new_xy(old_xy, speed, angle_in_radians, dt):
-    new_x = old_xy[0] + (speed * math.cos(angle_in_radians) * dt)
-    new_y = old_xy[1] - (speed * math.sin(angle_in_radians) * dt)
-    return new_x, new_y
 
 
 class Soldier(pygame.sprite.Sprite):
@@ -534,7 +460,9 @@ def start():
         # Don't draw buttons if game has begun
         if (begin) and (not won) and (not killed):
             soldier_group.update(direction)
-            bullet_group.update(dt, soldier.rect.center[0], soldier.rect.center[1])
+            bullet_group.update(
+                dt, soldier.rect.center[0], soldier.rect.center[1], DISPLAYSURF
+            )
             bomb_group.update(dt)
             enemy_group.update(
                 soldier.rect.center[0], soldier.rect.center[1], DISPLAYSURF

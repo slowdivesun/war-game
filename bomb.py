@@ -5,6 +5,7 @@ import math
 from load_image import load_image
 from groups import explosion_group
 import random
+from constants import disp_width, disp_height
 
 bomb_speed = 0.4
 disp_width = 900
