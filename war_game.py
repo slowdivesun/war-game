@@ -15,6 +15,8 @@ from sliders import (
     BonusTargetSlider,
 )
 from draw_functions import *
+from game_buttons import create_button_func, create_button_center
+from buttons import *
 from load_image import load_image
 from groups import explosion_group
 
@@ -48,13 +50,7 @@ won_sound = pygame.mixer.Sound("./sounds/won.wav")
 
 
 # Create the Screen
-DISPLAYSURF = pygame.display.set_mode((disp_width, disp_height))
 
-
-# Define Fonts
-font = pygame.font.SysFont("bahnschrift", 30)  # NOTE: font size
-emoji_font = pygame.font.SysFont("segoeuisymbol", 30)
-arial_font = pygame.font.SysFont("Arial", 30)
 
 # Define Constants
 FPS = pygame.time.Clock()
@@ -97,15 +93,6 @@ def create_button_new(
     pygame.draw.rect(DISPLAYSURF, back_col, button)
     button_text = font.render(text, True, color)
     text_rect = button_text.get_rect(center=(x + (w / 2), y + (h / 2)))
-    DISPLAYSURF.blit(button_text, text_rect)
-    return button
-
-
-def create_button_center(x, y, w, h, font, text, k, g, color=WHITE):
-    button = pygame.Rect(x - w / 2, y - h / 2, w, h)
-    pygame.draw.rect(DISPLAYSURF, color, button)
-    button_text = font.render(text, True, BLACK)
-    text_rect = button_text.get_rect(center=(x, y))
     DISPLAYSURF.blit(button_text, text_rect)
     return button
 
@@ -477,107 +464,17 @@ def start():
 
         # Buttons to start the game and change parameters
         if not begin:
-            begin_button = create_button_center(
-                begin_btn_order * (btn_col_width) + (btn_col_width / 2),
-                btn_y,
-                settings_btn_width,
-                settings_btn_height,
-                font,
-                "Begin",
-                680,
-                505,
-                BTN_GRAY,
-            )
-            back_button = create_button_center(
-                back_btn_order * (btn_col_width) + (small_btn_col_width / 2),
-                btn_y,
-                small_btn_width,
-                settings_btn_height,
-                pygame.font.SysFont("segoeuisymbol", 30),
-                "\U00002B05",
-                680,
-                505,
-                (199, 95, 95),
-            )
-            info_button = create_button_center(
-                info_btn_order * (btn_col_width) + (small_btn_col_width / 2),
-                btn_y,
-                small_btn_width,
-                settings_btn_height,
-                pygame.font.SysFont("segoeuisymbol", 30),
-                "\U00002139",
-                680,
-                505,
-                (63, 60, 230),
-            )
+            begin_button = ext_begin_button_gray()
+            back_button = ext_back_button()
+            info_button = ext_info_button()
             if is_selected:
-                rotate_left_button = create_button_center(
-                    rotatel_btn_order * (btn_col_width) + (small_btn_col_width / 2),
-                    btn_y,
-                    small_btn_width,
-                    settings_btn_height,
-                    emoji_font,
-                    "🔄️",
-                    680,
-                    505,
-                    BTN_GRAY,
-                )
-                rotate_right_button = create_button_center(
-                    rotater_btn_order * (btn_col_width) + (small_btn_col_width / 2),
-                    btn_y,
-                    small_btn_width,
-                    settings_btn_height,
-                    emoji_font,
-                    "🔃",
-                    680,
-                    505,
-                    BTN_GRAY,
-                )
-                flip_button = create_button_center(
-                    flip_btn_order * (btn_col_width) + (btn_col_width / 2),
-                    btn_y,
-                    settings_btn_width,
-                    settings_btn_height,
-                    font,
-                    "Flip",
-                    680,
-                    505,
-                    BTN_GRAY,
-                )
+                rotate_left_button = ext_rotate_left_button_gray()
+                rotate_right_button = ext_rotate_right_button_gray()
+                flip_button = ext_flip_button_gray()
             else:
-                rotate_left_button = create_button_center(
-                    rotatel_btn_order * (btn_col_width) + (small_btn_col_width / 2),
-                    btn_y,
-                    small_btn_width,
-                    settings_btn_height,
-                    emoji_font,
-                    "🔄️",
-                    680,
-                    505,
-                    BTN_GREEN,
-                )
-                rotate_right_button = create_button_center(
-                    rotater_btn_order * (btn_col_width) + (small_btn_col_width / 2),
-                    btn_y,
-                    small_btn_width,
-                    settings_btn_height,
-                    emoji_font,
-                    "🔃",
-                    680,
-                    505,
-                    BTN_GREEN,
-                )
-                flip_button = create_button_center(
-                    flip_btn_order * (btn_col_width) + (btn_col_width / 2),
-                    btn_y,
-                    settings_btn_width,
-                    settings_btn_height,
-                    font,
-                    "Flip",
-                    680,
-                    505,
-                    BTN_GREEN,
-                )
+                rotate_left_button = ext_rotate_left_button_green()
+                rotate_right_button = ext_rotate_right_button_green()
+                flip_button = ext_flip_button_green()
 
         # Display restart button if game has ended
         if won or killed:
@@ -939,119 +836,20 @@ def new_main_menu():
     background1 = pygame.Surface((disp_width, 0.85 * disp_height))
     background1.fill("#333333")
 
-    upper_strip = disp_height * 0.15
-    topbar_btn_width = disp_width / 6
-
     while True:
         DISPLAYSURF.blit(background, (0, 0))
         DISPLAYSURF.blit(background1, (0, 0.15 * disp_height))
         background1.blit(home_img, (25, 10))
         DISPLAYSURF.blit(icon_img, (10, upper_strip / 2 - icon_img.get_height() / 2))
-        starts = create_button_func(
-            2 * disp_width / 3,
-            disp_height / 2,
-            topbar_btn_width,
-            35,
-            pygame.font.SysFont("Arial", 23),
-            "START",
-            DISPLAYSURF,
-            (255, 255, 255),
-            "#ed5e3e",
-        )
+        starts = ext_start_button()
         if starts.collidepoint(pygame.mouse.get_pos()):
-            starts = create_button_func(
-                2 * disp_width / 3,
-                disp_height / 2,
-                topbar_btn_width,
-                35,
-                pygame.font.SysFont("Arial", 23),
-                "START",
-                DISPLAYSURF,
-                (255, 255, 255),
-                "#f9430a",
-            )
-        else:
-            starts = create_button_func(
-                2 * disp_width / 3,
-                disp_height / 2,
-                topbar_btn_width,
-                35,
-                pygame.font.SysFont("Arial", 23),
-                "START",
-                DISPLAYSURF,
-                (255, 255, 255),
-                "#ed5e3e",
-            )
-        settings = create_button_func(
-            disp_width / 2 + topbar_btn_width,
-            0,
-            topbar_btn_width,
-            upper_strip,
-            pygame.font.SysFont("BOLD", 25),
-            "SETTINGS",
-            DISPLAYSURF,
-            (255, 255, 255),
-            (0, 0, 0),
-        )
+            starts = ext_start_button_hover()
+        settings = ext_settings_button()
         if settings.collidepoint(pygame.mouse.get_pos()):
-            settings = create_button_func(
-                disp_width / 2 + topbar_btn_width,
-                0,
-                topbar_btn_width,
-                upper_strip,
-                pygame.font.SysFont("BOLD", 25),
-                "SETTINGS",
-                DISPLAYSURF,
-                (255, 255, 255),
-                "#232023",
-            )
-        else:
-            settings = create_button_func(
-                disp_width / 2 + topbar_btn_width,
-                0,
-                topbar_btn_width,
-                upper_strip,
-                pygame.font.SysFont("BOLD", 25),
-                "SETTINGS",
-                DISPLAYSURF,
-                (255, 255, 255),
-                (0, 0, 0),
-            )
-        about = create_button_func(
-            disp_width / 2 + 2 * topbar_btn_width,
-            0,
-            topbar_btn_width,
-            upper_strip,
-            pygame.font.SysFont("BOLD", 25),
-            "ABOUT",
-            DISPLAYSURF,
-            (255, 255, 255),
-            (0, 0, 0),
-        )
+            settings = ext_settings_button_hover()
+        about = ext_about_button()
         if about.collidepoint(pygame.mouse.get_pos()):
-            about = create_button_func(
-                disp_width / 2 + 2 * topbar_btn_width,
-                0,
-                topbar_btn_width,
-                upper_strip,
-                pygame.font.SysFont("BOLD", 25),
-                "ABOUT",
-                DISPLAYSURF,
-                (255, 255, 255),
-                "#232023",
-            )
-        else:
-            about = create_button_func(
-                disp_width / 2 + 2 * topbar_btn_width,
-                0,
-                topbar_btn_width,
-                upper_strip,
-                pygame.font.SysFont("BOLD", 25),
-                "ABOUT",
-                DISPLAYSURF,
-                (255, 255, 255),
-                (0, 0, 0),
-            )
+            about = ext_about_button_hover()
         games = create_button_new(
             430, 460, 160, 32, pygame.font.SysFont("Arial", 23), "Saved Games", 450, 465
         )

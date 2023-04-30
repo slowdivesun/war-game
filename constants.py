@@ -1,3 +1,7 @@
+import pygame
+
+pygame.init()
+
 # Define colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -8,6 +12,7 @@ BTN_GREEN = (96, 102, 97)
 # Create the Screen
 disp_width = 900
 disp_height = 600
+DISPLAYSURF = pygame.display.set_mode((disp_width, disp_height))
 
 # Button Parameters
 settings_btn_width = 150
@@ -24,3 +29,14 @@ btn_col_width = disp_width / 5
 btn_row_height = disp_height / 8
 btn_row_top_margin = 7 * btn_row_height
 btn_y = btn_row_top_margin + btn_row_height / 2
+
+
+# Define Fonts
+font = pygame.font.SysFont("bahnschrift", 30)  # NOTE: font size
+emoji_font = pygame.font.SysFont("segoeuisymbol", 30)
+arial_font = pygame.font.SysFont("Arial", 30)
+
+
+# top button parameters
+upper_strip = disp_height * 0.15
+topbar_btn_width = disp_width / 6

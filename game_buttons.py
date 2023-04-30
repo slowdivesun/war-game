@@ -14,16 +14,21 @@ def create_button_fun(x, y, w, h, font, text, k, g, color=WHITE):
     return button, button_text, text_rect
 
 
-class GameButton:
-    def __init__(self, x, y, w, h, font, text, color=WHITE):
-        self.button = pygame.Rect(x, y, w, h)
-        self.text = font.render(text, True, BLACK)
-        self.text_rect = self.text.get_rect(center=(x + (w / 2), y + (h / 2)))
-        self.visible = True
+def create_button_func(
+    x, y, w, h, font, text, surf, color=(0, 0, 0), back_col=(255, 255, 255)
+):
+    button = pygame.Rect(x, y, w, h)
+    pygame.draw.rect(surf, back_col, button)
+    button_text = font.render(text, True, color)
+    text_rect = button_text.get_rect(center=(x + (w / 2), y + (h / 2)))
+    surf.blit(button_text, text_rect)
+    return button
 
-    def toggle_disability(self):
-        pass
 
-    def render_button(self, surface, color):
-        pygame.draw.rect(surface, color, self.button)
-        surface.blit(self.text, self.text_rect)
+def create_button_center(x, y, w, h, font, text, surf, color=WHITE):
+    button = pygame.Rect(x - w / 2, y - h / 2, w, h)
+    pygame.draw.rect(surf, color, button)
+    button_text = font.render(text, True, BLACK)
+    text_rect = button_text.get_rect(center=(x, y))
+    surf.blit(button_text, text_rect)
+    return button
