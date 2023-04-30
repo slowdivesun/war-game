@@ -4,8 +4,11 @@ from pygame.locals import *
 import math
 from load_image import load_image
 from groups import explosion_group
+import random
 
 bomb_speed = 0.4
+disp_width = 900
+disp_height = 600
 
 
 def calculate_new_xy_bomb(old_xy, speed, bomb_angle_radians, dt):
@@ -63,3 +66,22 @@ class Bomb(pygame.sprite.Sprite):
             new_explosion = Explosion(self.lim_x, self.lim_y)
             explosion_group.add(new_explosion)
             self.kill()
+
+
+def generate_bomb_coordinates():
+    side = random.randint(1, 4)
+    # side = 1
+    coordinate_x = 0
+    coordinate_y = 0
+    # top, right, bottom, left
+    if side == 1:
+        coordinate_x = random.randint(0, disp_width)
+    if side == 2:
+        coordinate_x = disp_width
+        coordinate_y = random.randint(0, disp_height)
+    if side == 3:
+        coordinate_y = disp_height
+        coordinate_x = random.randint(0, disp_width)
+    if side == 4:
+        coordinate_y = random.randint(0, disp_height)
+    return coordinate_x, coordinate_y

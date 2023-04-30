@@ -2,9 +2,10 @@ import pygame, sys
 import os
 from pygame.locals import *
 import math
-from bomb import Bomb
+from bomb import Bomb, generate_bomb_coordinates
 from civilian import Civilian
 from bonus import Bonus
+from enemy import Enemy
 from sliders import (
     CivilianSlider,
     BonusSlider,
@@ -13,7 +14,6 @@ from sliders import (
     BonusTargetSlider,
 )
 from draw_functions import *
-import random
 from load_image import load_image
 from groups import explosion_group
 
@@ -154,95 +154,6 @@ class Target(pygame.sprite.Sprite):
         return self.rect.left, self.rect.top
 
 
-class Enemy(pygame.sprite.Sprite):
-    def __init__(self, left, top, angle=0):
-        pygame.sprite.Sprite.__init__(self)
-        self.image, self.rect = load_image("enemy.png", -1, 0.08, angle)
-        screen = pygame.display.get_surface()
-        self.area = screen.get_rect()
-        self.left = left
-        self.top = top
-        self.rect.topleft = left, top
-        self.angle = angle
-        self.right_facing = True
-
-        # NOTE: drag and drop
-        self.clicked = False
-        self.selected = False
-        self.isRandom = False
-
-    def change_angle(self, direction):
-        if (
-            (self.right_facing)
-            and (self.angle + 10 * direction <= 90)
-            and (self.angle + 10 * direction >= -90)
-        ):
-            self.angle += 10 * direction
-            self.image, self.rect = load_image("enemy.png", -1, 0.08, self.angle)
-            self.rect.topleft = self.left, self.top
-        if (
-            (not self.right_facing)
-            and (self.angle + 10 * direction >= 90)
-            and (self.angle + 10 * direction <= 270)
-        ):
-            self.angle += 10 * direction
-            self.image, self.rect = load_image(
-                "enemy.png", -1, 0.08, (180 - self.angle)
-            )
-            self.angle = 180 - self.angle
-            self.flip_enemy()
-            self.right_facing = False
-            self.rect.topleft = self.left, self.top
-
-    def flip_enemy(self):
-        self.image = self.image.copy()
-        self.image = pygame.transform.flip(self.image, True, False)
-        self.rect = self.image.get_rect()
-        self.angle = -1 * self.angle + 180
-        self.right_facing = not self.right_facing
-        self.rect.topleft = self.left, self.top
-
-    def random_reorientation(self, x, y):
-        print(self.left, self.top)
-        print(self.rect.topleft)
-        new_angle = math.atan2(self.rect.center[1] - y, x - self.rect.center[0])
-        print("in radian: ", new_angle)
-        new_angle = math.degrees(new_angle)
-        print("in degrees: ", new_angle)
-
-        if new_angle >= 90 and new_angle <= 180:
-            self.angle = 180 - new_angle
-            self.image, self.rect = load_image("enemy.png", -1, 0.08, self.angle)
-            self.flip_enemy()
-        if new_angle <= -90 and new_angle >= -180:
-            self.angle = new_angle + 180
-            self.angle *= -1
-            self.image, self.rect = load_image("enemy.png", -1, 0.08, self.angle)
-            self.flip_enemy()
-        else:
-            self.angle = new_angle
-            self.image, self.rect = load_image("enemy.png", -1, 0.08, self.angle)
-        self.rect.topleft = self.left, self.top
-
-    def location(self):
-        return self.rect.left, self.rect.top
-
-    def update(self, x, y):
-        # pygame.draw.line(
-        #     DISPLAYSURF, "red", (x, y), (self.rect.center[0], self.rect.center[1])
-        # )
-        # pygame.draw.line(
-        #     DISPLAYSURF,
-        #     "blue",
-        #     (self.rect.center[0], self.rect.center[1]),
-        #     (
-        #         self.rect.center[0] + math.cos(math.radians(self.angle)) * 900,
-        #         self.rect.center[1] - math.sin(math.radians(self.angle)) * 900,
-        #     ),
-        # )
-        pass
-
-
 class Bullet(pygame.sprite.Sprite):
     def __init__(
         self,
@@ -271,9 +182,9 @@ class Bullet(pygame.sprite.Sprite):
         #     self.rect.center, bullet_speed, math.radians(self.angle), dt
         # )
         # self.rect.center = center
-        # pygame.draw.line(
-        #     DISPLAYSURF, WHITE, (self.rect.center[0], self.rect.center[1]), (x, y)
-        # )
+        pygame.draw.line(
+            DISPLAYSURF, WHITE, (self.rect.center[0], self.rect.center[1]), (x, y)
+        )
         center = calculate_new_xy(
             (self.positionx, self.positiony), bullet_speed, math.radians(self.angle), dt
         )
@@ -301,6 +212,7 @@ class Soldier(pygame.sprite.Sprite):
         self.rect.topleft = 350, 300
         self.move = 18
         self.right_facing = True
+        self.health = 3
 
     def restart(self):
         self.rect.topleft = 10, 90
@@ -336,47 +248,6 @@ class Soldier(pygame.sprite.Sprite):
         return self.rect.left, self.rect.top
 
 
-def draw_enemies(count):
-    enemies = []
-    left = 5
-    top = 5
-    img_width = load_image("enemy.png")[0].get_width() * 0.08
-
-    for i in range(count):
-        enemies.append(Enemy(left + (img_width + 2) * i, top))
-
-    return enemies
-
-
-def draw_civilians(count):
-    civilians = []
-    left = 5
-    top = (3 * disp_height / 4) - 10 - load_image("civilian.png")[0].get_height() * 0.05
-    img_width = load_image("civilian.png")[0].get_width() * 0.05
-
-    for i in range(count):
-        civilians.append(Civilian(left + (img_width + 40) * i, top))
-
-    return civilians
-
-
-def draw_bonuses(count):
-    bonuses = []
-    left = 5
-    top = (
-        (3 * disp_height / 4)
-        - 20
-        - load_image("civilian.png")[0].get_height() * 0.05
-        - load_image("coin.png")[0].get_height() * 0.08
-    )
-    img_width = load_image("coin.png")[0].get_width() * 0.08
-
-    for i in range(count):
-        bonuses.append(Bonus(left + (img_width + 30) * i, top, 5))
-
-    return bonuses
-
-
 def check_collision(new_x, new_y, ew, eh, targ):
     if new_x + ew > targ.rect.left - 2 and new_x + ew < targ.rect.right + 2:
         if new_y + eh > targ.rect.top - 2 and new_y + eh < targ.rect.bottom + 2:
@@ -390,25 +261,6 @@ def check_collision(new_x, new_y, ew, eh, targ):
         if new_y > targ.rect.top - 2 and new_y < targ.rect.bottom + 2:
             return True
     return False
-
-
-def generate_bomb_coordinates():
-    side = random.randint(1, 4)
-    # side = 1
-    coordinate_x = 0
-    coordinate_y = 0
-    # top, right, bottom, left
-    if side == 1:
-        coordinate_x = random.randint(0, 900)
-    if side == 2:
-        coordinate_x = 900
-        coordinate_y = random.randint(0, 600)
-    if side == 3:
-        coordinate_y = 600
-        coordinate_x = random.randint(0, 900)
-    if side == 4:
-        coordinate_y = random.randint(0, 600)
-    return coordinate_x, coordinate_y
 
 
 def start():
@@ -485,8 +337,16 @@ def start():
         # Game Won
         if soldier.rect.colliderect(target.rect):
             won = True
-        if len(pygame.sprite.spritecollide(soldier, bullet_group, True)) > 0:
-            killed = True
+        number_of_strikes = 0
+        if (
+            number_of_strikes := len(
+                pygame.sprite.spritecollide(soldier, bullet_group, True)
+            )
+        ) > 0:
+            soldier.health -= number_of_strikes
+            print(number_of_strikes)
+            if soldier.health <= 0:
+                killed = True
         if explosion_group.sprite != None:
             killed = True
         for event in pygame.event.get():
@@ -516,7 +376,7 @@ def start():
                     sold_x,
                     sold_y,
                 )
-                # bomb_group.add(bomb)
+                bomb_group.add(bomb)
             if event.type == pygame.QUIT:
                 game = False
             elif event.type == pygame.KEYDOWN:
@@ -676,7 +536,9 @@ def start():
             soldier_group.update(direction)
             bullet_group.update(dt, soldier.rect.center[0], soldier.rect.center[1])
             bomb_group.update(dt)
-            enemy_group.update(soldier.rect.center[0], soldier.rect.center[1])
+            enemy_group.update(
+                soldier.rect.center[0], soldier.rect.center[1], DISPLAYSURF
+            )
             for civ in civilian_group:
                 if civ.rect.colliderect(soldier.rect):
                     civ.incident = True
@@ -727,7 +589,7 @@ def start():
                     small_btn_width,
                     settings_btn_height,
                     emoji_font,
-                    "\U000021AA",
+                    "🔄️",
                     680,
                     505,
                     BTN_GRAY,
@@ -738,7 +600,7 @@ def start():
                     small_btn_width,
                     settings_btn_height,
                     emoji_font,
-                    "\U000021A9",
+                    "🔃",
                     680,
                     505,
                     BTN_GRAY,
@@ -761,7 +623,7 @@ def start():
                     small_btn_width,
                     settings_btn_height,
                     emoji_font,
-                    "\U000021AA",
+                    "🔄️",
                     680,
                     505,
                     BTN_GREEN,
@@ -772,7 +634,7 @@ def start():
                     small_btn_width,
                     settings_btn_height,
                     emoji_font,
-                    "\U000021A9",
+                    "🔃",
                     680,
                     505,
                     BTN_GREEN,
