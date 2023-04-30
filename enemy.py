@@ -55,12 +55,8 @@ class Enemy(pygame.sprite.Sprite):
         self.rect.topleft = self.left, self.top
 
     def random_reorientation(self, x, y):
-        print(self.left, self.top)
-        print(self.rect.topleft)
         new_angle = math.atan2(self.rect.center[1] - y, x - self.rect.center[0])
-        print("in radian: ", new_angle)
         new_angle = math.degrees(new_angle)
-        print("in degrees: ", new_angle)
 
         if new_angle >= 90 and new_angle <= 180:
             self.angle = 180 - new_angle

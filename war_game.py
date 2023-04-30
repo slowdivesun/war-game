@@ -7,6 +7,7 @@ from bomb import Bomb, generate_bomb_coordinates
 from civilian import Civilian
 from bonus import Bonus
 from enemy import Enemy, Bullet
+from soldier import *
 from sliders import (
     CivilianSlider,
     BonusSlider,
@@ -18,7 +19,7 @@ from draw_functions import *
 from game_buttons import create_button_func, create_button_center
 from buttons import *
 from load_image import load_image
-from groups import explosion_group
+from groups import explosion_group, projectile_group
 
 if not pygame.font:
     print("Warning, fonts disabled")
@@ -47,9 +48,6 @@ civilian_sound = pygame.mixer.Sound("./sounds/civilian.wav")
 bonus_sound = pygame.mixer.Sound("./sounds/coin.wav")
 lost_sound = pygame.mixer.Sound("./sounds/gameover.wav")
 won_sound = pygame.mixer.Sound("./sounds/won.wav")
-
-
-# Create the Screen
 
 
 # Define Constants
@@ -114,75 +112,6 @@ class Target(pygame.sprite.Sprite):
 
     def location(self):
         return self.rect.left, self.rect.top
-
-
-class Soldier(pygame.sprite.Sprite):
-    def __init__(self, soldier_x=10, soldier_y=90):
-        pygame.sprite.Sprite.__init__(self)
-        self.image, self.rect = load_image("soldier.png", -1, 0.035)
-        screen = pygame.display.get_surface()
-        self.area = screen.get_rect()
-        self.rect.topleft = 350, 300
-        self.health = 3
-        self.move = 18
-        self.right_facing = True
-
-    def restart(self):
-        self.rect.topleft = 350, 300
-        self.health = 3
-
-    def update(self, direction):
-        if direction == 2 and self.right_facing == True:
-            self.image = pygame.transform.flip(self.image, True, False)
-            self.right_facing = False
-        if direction == 3 and self.right_facing == False:
-            self.image = pygame.transform.flip(self.image, True, False)
-            self.right_facing = True
-        if direction != -1:
-            self._walk(direction)
-
-    def _walk(self, direction):
-        newpos = self.rect.move((0, 0))
-        if direction == 0:  # UP
-            if self.rect.top != self.area.top:
-                newpos = self.rect.move((0, -10))
-        elif direction == 1:  # DOWN
-            if self.rect.bottom != self.area.bottom:
-                newpos = self.rect.move((0, 10))
-        elif direction == 2:
-            if self.rect.left != self.area.left:
-                newpos = self.rect.move((-10, 0))
-        else:
-            if self.rect.right != self.area.right:
-                newpos = self.rect.move((10, 0))
-
-        self.rect = newpos
-
-    def location(self):
-        return self.rect.left, self.rect.top
-
-
-def display_health(sold):
-    pygame.draw.rect(
-        DISPLAYSURF,
-        (255, 0, 0),
-        pygame.Rect(
-            sold.rect.center[0] - 3 * 15 / 2,
-            sold.rect.topleft[1] - 10,
-            3 * 15,
-            5,
-        ),
-    )
-    pygame.draw.rect(
-        DISPLAYSURF,
-        (0, 128, 0),
-        (
-            sold.rect.center[0] - 3 * 15 / 2,
-            sold.rect.topleft[1] - 10,
-            (15 * (sold.health)),
-            5,
-        ),
-    )
 
 
 def check_collision(new_x, new_y, ew, eh, targ):
@@ -274,6 +203,7 @@ def start():
         # Game Won
         if soldier.rect.colliderect(target.rect):
             won = True
+
         number_of_strikes = 0
         if (
             number_of_strikes := len(
@@ -323,6 +253,9 @@ def start():
                     direction = 2
                 elif event.key == pygame.K_RIGHT:
                     direction = 3
+                elif event.key == pygame.K_SPACE:
+                    if projectile_group.sprite == None:
+                        soldier.throw(pygame.time.get_ticks())
                 elif event.key == pygame.K_r:
                     for civ in civilian_group:
                         if civ.incident:
@@ -465,11 +398,13 @@ def start():
         bullet_group.draw(DISPLAYSURF)
         bomb_group.draw(DISPLAYSURF)
         explosion_group.draw(DISPLAYSURF)
+        projectile_group.draw(DISPLAYSURF)
 
         # Call Update Function of all Sprites
         # Don't draw buttons if game has begun
         if (begin) and (not won) and (not killed):
             soldier_group.update(direction)
+            projectile_group.update(pygame.time.get_ticks())
             bullet_group.update(
                 dt, soldier.rect.center[0], soldier.rect.center[1], DISPLAYSURF
             )
