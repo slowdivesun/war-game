@@ -221,7 +221,7 @@ def start():
                 sold_y = soldier.rect.center[1]
                 sold_x = soldier.rect.center[0]
                 for enemy in enemy_group:
-                    enemy.random_reorientation(sold_x, sold_y)
+                    # enemy.random_reorientation(sold_x, sold_y)
                     bullet = Bullet(enemy)
                     bullet_group.add(bullet)
             # Make new bombs
@@ -383,9 +383,6 @@ def start():
             b.lim_x = soldier.rect.center[0]
             b.lim_y = soldier.rect.center[1]
 
-        # Time Elapsed
-        dt = FPS.tick(60)
-
         # Draw Everything
         DISPLAYSURF.blit(background, (0, 0))
         if not killed:
@@ -404,7 +401,7 @@ def start():
         # Don't draw buttons if game has begun
         if (begin) and (not won) and (not killed):
             soldier_group.update(direction)
-            projectile_group.update(pygame.time.get_ticks())
+            projectile_group.update(pygame.time.get_ticks(), dt)
             bullet_group.update(
                 dt, soldier.rect.center[0], soldier.rect.center[1], DISPLAYSURF
             )
@@ -450,6 +447,9 @@ def start():
             pass
 
         pygame.display.flip()
+
+        # Time Elapsed
+        dt = FPS.tick_busy_loop(60)  # CHANGE
 
     pygame.quit()
 

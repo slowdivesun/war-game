@@ -1,10 +1,12 @@
 import pygame
 import math
-from constants import DISPLAYSURF
+from constants import DISPLAYSURF, disp_height
 from groups import projectile_group
 from load_image import load_image
 
 projectile_angle = 45
+projectile_velocity = 50
+g = -9.8
 
 
 class Projectile(pygame.sprite.Sprite):
@@ -14,35 +16,43 @@ class Projectile(pygame.sprite.Sprite):
         self.image, self.rect = load_image("bomb.png", -1, 0.03)
         screen = pygame.display.get_surface()
         self.area = screen.get_rect()
-        self.rect.topleft = soldier.rect.topleft[0], soldier.rect.topleft[1]
+        self.rect.center = soldier.rect.center[0], soldier.rect.center[1]
         self.velocity = vel
         self.right_facing = soldier.right_facing
-        self.posx = self.rect.center[0]
-        self.posy = self.rect.center[1]
+        self.originx = soldier.rect.center[0]
+        self.originy = soldier.rect.center[1]
+        self.posx = self.originx
+        self.posy = self.originy
         self.start_time = start_time
+        self.angle = projectile_angle
 
-    def update(self, now):
-        angle = 45
+    def update(self, now, dt):
         if not self.right_facing:
-            angle = 135
+            self.angle = 135
         time_change = now - self.start_time
+        # print("time_change = ", time_change, ", dt = ", dt)
+        time_change /= 150.0
+
         if time_change > 0:
-            time_change /= 100
             new_pos = calculate_new_xy_projectile(
-                self.velocity, math.radians(angle), time_change
+                self.velocity, math.radians(self.angle), time_change
             )
-            self.posx += new_pos[0]
-            self.posy -= new_pos[1]
+            self.posx = self.originx + new_pos[0]
+            self.posy = self.originy - new_pos[1]
             self.rect.center = (round(self.posx), round(self.posy))
+        if self.rect.y >= self.originy:
+            self.rect.y = self.originy - self.rect.height
+            self.velocity = 0
+            self.kill()
         if not DISPLAYSURF.get_rect().contains(self.rect):
             self.kill()
 
 
-def calculate_new_xy_projectile(speed, angle_radians, dt):
-    print("Speed: ", speed, speed * math.cos(angle_radians))
-    displacement_x = speed * math.cos(angle_radians) * dt
-    displacement_y = speed * math.sin(angle_radians) * dt - 0.5 * 9.8 * dt * dt
-    print("displacements: ", displacement_x, displacement_y)
+def calculate_new_xy_projectile(vel, angle_radians, time_change):
+    grav_time_square = g * time_change * time_change / 2.0
+    displacement_x = vel * math.cos(angle_radians) * time_change
+    displacement_y = vel * math.sin(angle_radians) * time_change + grav_time_square
+    # print("displacements: ", displacement_x, displacement_y)
     return displacement_x, displacement_y
 
 
@@ -88,7 +98,7 @@ class Soldier(pygame.sprite.Sprite):
 
         self.rect = newpos
 
-    def throw(self, start_time, vel=15):
+    def throw(self, start_time, vel=projectile_velocity):
         new_proj = Projectile(self, start_time, vel)
         projectile_group.add(new_proj)
 
