@@ -35,6 +35,7 @@ btn_y = btn_row_top_margin + btn_row_height / 2
 font = pygame.font.SysFont("bahnschrift", 30)  # NOTE: font size
 emoji_font = pygame.font.SysFont("segoeuisymbol", 30)
 arial_font = pygame.font.SysFont("Arial", 30)
+stats_font = pygame.font.SysFont("couriernew", 20)
 
 
 # top button parameters

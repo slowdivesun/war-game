@@ -20,6 +20,7 @@ from game_buttons import create_button_func, create_button_center
 from buttons import *
 from load_image import load_image
 from groups import explosion_group, projectile_group
+from game_stats import display_stats
 
 if not pygame.font:
     print("Warning, fonts disabled")
@@ -127,6 +128,20 @@ def check_collision(new_x, new_y, ew, eh, targ):
         if new_y > targ.rect.top - 2 and new_y < targ.rect.bottom + 2:
             return True
     return False
+
+
+def move_entities(object1, object2):
+    pos = pygame.mouse.get_pos()
+    new_x = pos[0] - (object1.rect.width / 2)
+    new_y = pos[1] - (object1.rect.height / 2)
+    ew = object1.rect.width
+    eh = object1.rect.height
+    if not check_collision(new_x, new_y, ew, eh, object2):
+        object1.left = pos[0] - (object1.rect.width / 2)
+        object1.top = pos[1] - (object1.rect.height / 2)
+        object1.rect.topleft = pos[0] - (object1.rect.width / 2), pos[1] - (
+            object1.rect.height / 2
+        )
 
 
 def start():
@@ -353,30 +368,10 @@ def start():
         if not begin:
             for enemy in enemy_group:
                 if enemy.clicked:
-                    pos = pygame.mouse.get_pos()
-                    new_x = pos[0] - (enemy.rect.width / 2)
-                    new_y = pos[1] - (enemy.rect.height / 2)
-                    ew = enemy.rect.width
-                    eh = enemy.rect.height
-                    if not check_collision(new_x, new_y, ew, eh, target):
-                        enemy.left = pos[0] - (enemy.rect.width / 2)
-                        enemy.top = pos[1] - (enemy.rect.height / 2)
-                        enemy.rect.topleft = pos[0] - (enemy.rect.width / 2), pos[1] - (
-                            enemy.rect.height / 2
-                        )
+                    move_entities(enemy, target)
             for civ in civilian_group:
                 if civ.clicked:
-                    pos = pygame.mouse.get_pos()
-                    new_x = pos[0] - (civ.rect.width / 2)
-                    new_y = pos[1] - (civ.rect.height / 2)
-                    ew = civ.rect.width
-                    eh = civ.rect.height
-                    if not check_collision(new_x, new_y, ew, eh, target):
-                        civ.left = pos[0] - (civ.rect.width / 2)
-                        civ.top = pos[1] - (civ.rect.height / 2)
-                        civ.rect.topleft = pos[0] - (civ.rect.width / 2), pos[1] - (
-                            civ.rect.height / 2
-                        )
+                    move_entities(civ, target)
 
         # update bomb target coordinates
         for b in bomb_group:
@@ -439,6 +434,7 @@ def start():
             menu_button = create_button(
                 450, 500, 120, 40, font, "Menu", 680, 505, BTN_GRAY
             )
+            display_stats()
 
         if won:
             pass
@@ -550,7 +546,7 @@ def go_settings():
         )
         pygame.draw.rect(
             rect_surf,
-            (51, 51, 51, 180),
+            (51, 51, 51, 120),
             pygame.Rect(0, 0, rect_surf.get_width(), rect_surf.get_height()),
         )
         pygame.draw.rect(
@@ -703,43 +699,37 @@ def intermediate():
     while True:
         screen.fill("#889988")
         clock.tick(50)
-        Play = create_button(
+        Play = create_button_func(
             400,
             525,
             120,
             50,
             pygame.font.SysFont(None, 36),
             "Play!",
-            410,
-            530,
             screen,
             WHITE,
             "#964F4CFF",
         )
         if Play.collidepoint(pygame.mouse.get_pos()):
-            Play = create_button(
+            Play = create_button_func(
                 400,
                 525,
                 120,
                 50,
                 pygame.font.SysFont(None, 38),
                 "Play",
-                410,
-                530,
                 screen,
                 "#696667FF",
                 WHITE,
             )
         else:
-            Play = create_button(
+            Play = create_button_func(
                 400,
                 525,
                 120,
                 50,
                 pygame.font.SysFont(None, 36),
                 "Play",
-                410,
-                530,
                 screen,
                 WHITE,
                 "#964F4CFF",
@@ -876,8 +866,8 @@ def new_main_menu():
                     if btn.collidepoint(pygame.mouse.get_pos()):
                         if btn == starts:
                             if checked:
-                                # intermediate()
-                                start()
+                                intermediate()
+                                # start()
                             else:
                                 start()
                         elif btn == about:

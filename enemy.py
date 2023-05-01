@@ -76,18 +76,18 @@ class Enemy(pygame.sprite.Sprite):
         return self.rect.left, self.rect.top
 
     def update(self, x, y, surf):
-        pygame.draw.line(
-            surf, "red", (x, y), (self.rect.center[0], self.rect.center[1])
-        )
-        pygame.draw.line(
-            surf,
-            "blue",
-            (self.rect.center[0], self.rect.center[1]),
-            (
-                self.rect.center[0] + math.cos(math.radians(self.angle)) * 900,
-                self.rect.center[1] - math.sin(math.radians(self.angle)) * 900,
-            ),
-        )
+        # pygame.draw.line(
+        #     surf, "red", (x, y), (self.rect.center[0], self.rect.center[1])
+        # )
+        # pygame.draw.line(
+        #     surf,
+        #     "blue",
+        #     (self.rect.center[0], self.rect.center[1]),
+        #     (
+        #         self.rect.center[0] + math.cos(math.radians(self.angle)) * 900,
+        #         self.rect.center[1] - math.sin(math.radians(self.angle)) * 900,
+        #     ),
+        # )
         pass
 
 
@@ -119,9 +119,9 @@ class Bullet(pygame.sprite.Sprite):
         #     self.rect.center, bullet_speed, math.radians(self.angle), dt
         # )
         # self.rect.center = center
-        pygame.draw.line(
-            surf, WHITE, (self.rect.center[0], self.rect.center[1]), (x, y)
-        )
+        # pygame.draw.line(
+        #     surf, WHITE, (self.rect.center[0], self.rect.center[1]), (x, y)
+        # )
         center = calculate_new_xy(
             (self.positionx, self.positiony), bullet_speed, math.radians(self.angle), dt
         )
