@@ -4,7 +4,7 @@ import math
 from load_image import load_image
 from groups import explosion_group
 import random
-from constants import disp_width, disp_height, explosion_sound
+from constants import disp_width, disp_height, explosion_sound, DISPLAYSURF
 
 bomb_speed = 0.4
 disp_width = 900
@@ -18,7 +18,7 @@ def calculate_new_xy_bomb(old_xy, speed, bomb_angle_radians, dt):
 
 
 class Explosion(pygame.sprite.Sprite):
-    def __init__(self, tx, ty, x, y):
+    def __init__(self, tx, ty, x, y, type):
         pygame.sprite.Sprite.__init__(self)
         self.images = []
         for num in range(1, 6):
@@ -32,6 +32,7 @@ class Explosion(pygame.sprite.Sprite):
         self.counter = 0
         self.sold_coordinates = (x, y)
         self.damage_done = False
+        self.type = type  # soldier can get hurt
 
     def calculate_damage(self, soldier, curr_soldier_coordinates):
         if not self.damage_done:
@@ -50,7 +51,8 @@ class Explosion(pygame.sprite.Sprite):
             self.damage_done = True
 
     def update(self, soldier, soldier_cood):
-        self.calculate_damage(soldier, soldier_cood)
+        if self.type == 1:
+            self.calculate_damage(soldier, soldier_cood)
         explosion_speed = 4
         self.counter += 1
 
@@ -68,6 +70,8 @@ class Bomb(pygame.sprite.Sprite):
     def __init__(self, init_x, init_y, display, lim_x, lim_y):
         self.lim_x = lim_x
         self.lim_y = lim_y
+        self.init_x = init_x
+        self.init_y = init_y
         pygame.sprite.Sprite.__init__(self)
         self.image, self.rect = load_image("bomb.png", -1, 0.05)
         screen = pygame.display.get_surface()
@@ -84,19 +88,27 @@ class Bomb(pygame.sprite.Sprite):
         )
 
     def update(self, dt):
+        # pygame.draw.line(
+        #     DISPLAYSURF,
+        #     "blue",
+        #     (self.init_x, self.init_y),
+        #     (
+        #         self.target_coordinates[0],
+        #         self.target_coordinates[1],
+        #     ),
+        # )
         center = calculate_new_xy_bomb(self.rect.center, bomb_speed, self.angle, dt)
-        if not self.rect.collidepoint(
+        self.rect.center = round(center[0]), round(center[1])
+        if self.rect.collidepoint(
             self.target_coordinates[0], self.target_coordinates[1]
         ):
-            self.rect.center = center
-
-        else:
             pygame.mixer.Sound.play(explosion_sound)
             new_explosion = Explosion(
                 self.target_coordinates[0],
                 self.target_coordinates[1],
                 self.lim_x,
                 self.lim_y,
+                1,
             )
             explosion_group.add(new_explosion)
             self.kill()

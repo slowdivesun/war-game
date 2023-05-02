@@ -169,3 +169,98 @@ def terrain_select():
 #             bt_slider.slider_y - 40,
 #         )
 #         pygame.display.update()
+
+
+def intermediate():
+#     # Set up the screen
+#     screen = pygame.display.set_mode((900, 600))
+#     pygame.display.set_caption("Get Ready to War!")
+#     text = "Commander : Welcome Soldier!Here is your mission, you have to reach the target which is located at (,) and you are at (,).Reach the target and escape from the enemy base at the same time.The target is surrounded by the red rectance in the picture."
+#     intro_img = pygame.image.load(get_full_path("intro.png"))
+#     intro_img = pygame.transform.scale(intro_img, (400, 480))
+
+#     # Split the text into lines based on screen width
+#     words = text.split()
+#     lines = []
+#     line = ""
+#     for word in words:
+#         if font.size(line + " " + word)[0] > screen.get_width() - 430:
+#             lines.append(line.strip())
+#             line = ""
+#         line += " " + word
+#     lines.append(line.strip())
+#     clock = pygame.time.Clock()
+#     index = 0
+#     j = 0
+#     surfaces = []
+#     y = 0
+#     while True:
+#         screen.fill("#889988")
+#         clock.tick(50)
+#         Play = create_button_func(
+#             400,
+#             525,
+#             120,
+#             50,
+#             pygame.font.SysFont(None, 36),
+#             "Play!",
+#             screen,
+#             WHITE,
+#             "#964F4CFF",
+#         )
+#         if Play.collidepoint(pygame.mouse.get_pos()):
+#             Play = create_button_func(
+#                 400,
+#                 525,
+#                 120,
+#                 50,
+#                 pygame.font.SysFont(None, 38),
+#                 "Play",
+#                 screen,
+#                 "#696667FF",
+#                 WHITE,
+#             )
+#         else:
+#             Play = create_button_func(
+#                 400,
+#                 525,
+#                 120,
+#                 50,
+#                 pygame.font.SysFont(None, 36),
+#                 "Play",
+#                 screen,
+#                 WHITE,
+#                 "#964F4CFF",
+#             )
+#         for event in pygame.event.get():
+#             if event.type == pygame.QUIT:
+#                 pygame.quit()
+#                 quit()
+#             elif event.type == pygame.MOUSEBUTTONDOWN:
+#                 if Play.collidepoint(pygame.mouse.get_pos()):
+#                     # Start the game
+#                     start()
+
+#         # Draw the text surface to the screen
+
+#         # Update the text surface
+#         index += 1
+#         screen.blit(intro_img, (500, 0))
+#         if j < len(lines):
+#             if index > len(lines[j]):
+#                 index = 0
+#                 j += 1
+#             if j < len(lines):
+#                 text_surface = font.render(lines[j][:index], True, (0, 0, 0))
+
+#         if len(surfaces) > 0:
+#             for k in range(len(surfaces)):
+#                 screen.blit(surfaces[k], (30, 40 + 40 * k))
+#                 y = k + 1
+#         if j < len(lines):
+#             if index + 1 > len(lines[j]):
+#                 surfaces += [text_surface]
+#         if j < len(lines):
+#             screen.blit(text_surface, (30, 40 + 40 * y))
+
+#         pygame.display.update()

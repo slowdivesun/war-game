@@ -19,7 +19,7 @@ from groups import (
     enemy_explosion_group,
     bonus_animation_group,
 )
-from game_stats import display_stats
+from game_stats import display_stats, stats
 
 if not pygame.font:
     print("Warning, fonts disabled")
@@ -181,11 +181,18 @@ def start():
     bullet_group = pygame.sprite.Group()
     bomb_group = pygame.sprite.Group()
 
+    if soldier.bonus >= soldier.bon_target:
+        stats.task1 = True
+
+    if soldier.civilians >= soldier.civ_target:
+        stats.task2 = True
+
     # create_button(550, 10, 120, 50, font, "Quit", 580, 15)
 
     game = True
     won = False
     killed = False
+    displayed = False
     is_selected = False
     selected_enemy = None
     direction = -1
@@ -200,11 +207,14 @@ def start():
     back_button = None
     info_button = None
     bomb_iteration = 0
+    start_time = pygame.time.get_ticks()
 
     while game:
         direction = -1
         # Game Won
         if pygame.sprite.collide_mask(soldier, target):
+            stats.time = (pygame.time.get_ticks() - start_time) / 1000.0
+            stats.based_reached = True
             won = True
 
         number_of_strikes = 0
@@ -215,9 +225,11 @@ def start():
         ) > 0:
             soldier.health -= number_of_strikes
             if soldier.health <= 0:
+                stats.time = (pygame.time.get_ticks() - start_time) / 1000.0
                 killed = True
         if soldier.health <= 0:
             killed = True
+            stats.time = (pygame.time.get_ticks() - start_time) / 1000.0
         for event in pygame.event.get():
             # Make new bullets
             if (event.type == bullet_event) and begin and (not won) and (not killed):
@@ -262,6 +274,10 @@ def start():
                     for civ in civilian_group:
                         if civ.incident:
                             civ.rescued()
+                            soldier.add_civilian()
+                            stats.civ += 1
+                            if soldier.civilians >= soldier.civ_target:
+                                stats.task2 = True
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
                 x = pos[0]
@@ -303,12 +319,14 @@ def start():
                     begin = True
                     won = False
                     killed = False
+                    displayed = False
                     soldier.restart()
                     bomb_group.empty()
                     explosion_group.empty()
                     enemy_explosion_group.empty()
                     bullet_group.empty()
                     restart_button = None
+                    menu_button = None
                 if (
                     (rotate_left_button != None)
                     and is_selected
@@ -422,8 +440,10 @@ def start():
             for bon in pygame.sprite.spritecollide(soldier, bonus_group, False):
                 bon.collected()
                 soldier.add_bonus()
+                stats.bon += 1
                 pygame.mixer.Sound.play(clink_sound)
-                # if soldier.bonus >= soldier.bon_target:
+                if soldier.bonus >= soldier.bon_target:
+                    stats.task1 = True
                 # pygame.mixer.Sound.stop(clink_sound)
                 # pygame.mixer.Sound.play(bonus_sound)
             for particle in bonus_animation_group:
@@ -432,14 +452,13 @@ def start():
         if begin and (not won):
             explosion_group.update(soldier, soldier.location_center())
             bonus_animation_group.update()
-            enemy_explosion_group.update()
+            enemy_explosion_group.update(soldier, soldier.location_center())
 
         # Buttons to start the game and change parameters
         if not begin:
             begin_button = ext_begin_button_gray()
             back_button = ext_back_button()
             info_button = ext_info_button()
-            print(is_selected)
             if is_selected:
                 rotate_left_button = ext_rotate_left_button_gray()
                 rotate_right_button = ext_rotate_right_button_gray()
@@ -456,14 +475,11 @@ def start():
 
         # Display restart button if game has ended
         if won or killed:
-            restart_button = create_button(
-                650, 500, 120, 40, font, "Restart", 680, 505, BTN_GRAY
-            )
-            menu_button = create_button(
-                450, 500, 120, 40, font, "Menu", 680, 505, BTN_GRAY
-            )
-            display_stats()
-
+            restart_button = ext_restart_button()
+            menu_button = ext_menu_button()
+            if not displayed:
+                displayed = True
+                display_stats()
         if won:
             pass
 
@@ -623,101 +639,6 @@ def go_settings():
     pygame.quit()
 
 
-def intermediate():
-    # Set up the screen
-    screen = pygame.display.set_mode((900, 600))
-    pygame.display.set_caption("Get Ready to War!")
-    text = "Commander : Welcome Soldier!Here is your mission, you have to reach the target which is located at (,) and you are at (,).Reach the target and escape from the enemy base at the same time.The target is surrounded by the red rectance in the picture."
-    intro_img = pygame.image.load(get_full_path("intro.png"))
-    intro_img = pygame.transform.scale(intro_img, (400, 480))
-
-    # Split the text into lines based on screen width
-    words = text.split()
-    lines = []
-    line = ""
-    for word in words:
-        if font.size(line + " " + word)[0] > screen.get_width() - 430:
-            lines.append(line.strip())
-            line = ""
-        line += " " + word
-    lines.append(line.strip())
-    clock = pygame.time.Clock()
-    index = 0
-    j = 0
-    surfaces = []
-    y = 0
-    while True:
-        screen.fill("#889988")
-        clock.tick(50)
-        Play = create_button_func(
-            400,
-            525,
-            120,
-            50,
-            pygame.font.SysFont(None, 36),
-            "Play!",
-            screen,
-            WHITE,
-            "#964F4CFF",
-        )
-        if Play.collidepoint(pygame.mouse.get_pos()):
-            Play = create_button_func(
-                400,
-                525,
-                120,
-                50,
-                pygame.font.SysFont(None, 38),
-                "Play",
-                screen,
-                "#696667FF",
-                WHITE,
-            )
-        else:
-            Play = create_button_func(
-                400,
-                525,
-                120,
-                50,
-                pygame.font.SysFont(None, 36),
-                "Play",
-                screen,
-                WHITE,
-                "#964F4CFF",
-            )
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                if Play.collidepoint(pygame.mouse.get_pos()):
-                    # Start the game
-                    start()
-
-        # Draw the text surface to the screen
-
-        # Update the text surface
-        index += 1
-        screen.blit(intro_img, (500, 0))
-        if j < len(lines):
-            if index > len(lines[j]):
-                index = 0
-                j += 1
-            if j < len(lines):
-                text_surface = font.render(lines[j][:index], True, (0, 0, 0))
-
-        if len(surfaces) > 0:
-            for k in range(len(surfaces)):
-                screen.blit(surfaces[k], (30, 40 + 40 * k))
-                y = k + 1
-        if j < len(lines):
-            if index + 1 > len(lines[j]):
-                surfaces += [text_surface]
-        if j < len(lines):
-            screen.blit(text_surface, (30, 40 + 40 * y))
-
-        pygame.display.update()
-
-
 def new_main_menu():
     global checked
 
@@ -774,8 +695,8 @@ def new_main_menu():
                     if btn.collidepoint(pygame.mouse.get_pos()):
                         if btn == starts:
                             if checked:
-                                intermediate()
-                                # start()
+                                # intermediate()
+                                start()
                             else:
                                 start()
                         elif btn == about:

@@ -50,7 +50,7 @@ class Projectile(pygame.sprite.Sprite):
 
     def enemy_explosion(self, x, y):
         pygame.mixer.Sound.play(explosion_sound)
-        new_explosion = Explosion(x, y, x, y)
+        new_explosion = Explosion(x, y, x, y, 0)
         enemy_explosion_group.add(new_explosion)
         self.kill()
 
@@ -69,7 +69,8 @@ class Soldier(pygame.sprite.Sprite):
         screen = pygame.display.get_surface()
         self.area = screen.get_rect()
         self.mask = pygame.mask.from_surface(self.image)
-        self.rect.topleft = 350, 300
+        # self.rect.topleft = 350, 300
+        self.rect.topleft = 700, 10
         self.max_health = 10.0
         self.health = self.max_health
         self.civ_target = civ_target
@@ -81,7 +82,7 @@ class Soldier(pygame.sprite.Sprite):
 
     def restart(self):
         self.rect.topleft = 350, 300
-        self.health = 3
+        self.health = self.max_health
 
     def update(self, direction):
         if direction == 2 and self.right_facing == True:
@@ -113,7 +114,7 @@ class Soldier(pygame.sprite.Sprite):
     def add_bonus(self):
         self.bonus += 1
 
-    def add_civlian(self):
+    def add_civilian(self):
         self.civilians += 1
 
     def decrease_health(self, damage):

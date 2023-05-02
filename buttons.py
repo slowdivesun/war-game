@@ -147,14 +147,27 @@ def ext_random_button_green():
 
 def ext_restart_button():
     return create_button_center(
-        flip_btn_order * (btn_col_width) + (btn_col_width / 2),
+        restart_btn_order * (btn_col_width) + (btn_col_width / 2),
         btn_y,
         settings_btn_width,
         settings_btn_height,
         font,
-        "Flip",
+        "Restart",
         DISPLAYSURF,
-        BTN_GREEN,
+        BTN_GRAY,
+    )
+
+
+def ext_menu_button():
+    return create_button_center(
+        menu_btn_order * (btn_col_width) + (btn_col_width / 2),
+        btn_y,
+        settings_btn_width,
+        settings_btn_height,
+        font,
+        "Menu",
+        DISPLAYSURF,
+        BTN_GRAY,
     )
 
 
