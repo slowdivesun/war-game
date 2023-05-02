@@ -50,7 +50,7 @@ class Projectile(pygame.sprite.Sprite):
 
     def enemy_explosion(self, x, y):
         pygame.mixer.Sound.play(explosion_sound)
-        new_explosion = Explosion(x, y)
+        new_explosion = Explosion(x, y, x, y)
         enemy_explosion_group.add(new_explosion)
         self.kill()
 
@@ -59,7 +59,6 @@ def calculate_new_xy_projectile(vel, angle_radians, time_change):
     grav_time_square = g * time_change * time_change / 2.0
     displacement_x = vel * math.cos(angle_radians) * time_change
     displacement_y = vel * math.sin(angle_radians) * time_change + grav_time_square
-    # print("displacements: ", displacement_x, displacement_y)
     return displacement_x, displacement_y
 
 
@@ -69,8 +68,9 @@ class Soldier(pygame.sprite.Sprite):
         self.image, self.rect = load_image("soldier.png", -1, 0.035)
         screen = pygame.display.get_surface()
         self.area = screen.get_rect()
+        self.mask = pygame.mask.from_surface(self.image)
         self.rect.topleft = 350, 300
-        self.max_health = 10
+        self.max_health = 10.0
         self.health = self.max_health
         self.civ_target = civ_target
         self.bon_target = bon_target
@@ -116,12 +116,18 @@ class Soldier(pygame.sprite.Sprite):
     def add_civlian(self):
         self.civilians += 1
 
+    def decrease_health(self, damage):
+        self.health -= damage
+
     def throw(self, start_time, vel=projectile_velocity):
         new_proj = Projectile(self, start_time, vel)
         projectile_group.add(new_proj)
 
     def location(self):
         return self.rect.left, self.rect.top
+
+    def location_center(self):
+        return self.rect.center[0], self.rect.center[1]
 
 
 def display_health(sold):
@@ -141,7 +147,7 @@ def display_health(sold):
         (
             sold.rect.center[0] - 3 * 15 / 2,
             sold.rect.topleft[1] - 10,
-            ((50 / sold.max_health) * (sold.health)),
+            (0 if sold.health < 0 else (50 / sold.max_health) * (sold.health)),
             5,
         ),
     )

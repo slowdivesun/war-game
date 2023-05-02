@@ -84,6 +84,7 @@ class Target(pygame.sprite.Sprite):
         screen = pygame.display.get_surface()
         self.area = screen.get_rect()
         self.rect.topleft = 445, 210
+        self.mask = pygame.mask.from_surface(self.image)
         # NOTE: Draw border around rect
         # pygame.draw.rect(self.image, "red", self.image.get_rect(), 2)
 
@@ -194,11 +195,12 @@ def start():
     flip_button = None
     back_button = None
     info_button = None
+    bomb_iteration = 0
 
     while game:
         direction = -1
         # Game Won
-        if soldier.rect.colliderect(target.rect):
+        if pygame.sprite.collide_mask(soldier, target):
             won = True
 
         number_of_strikes = 0
@@ -210,7 +212,7 @@ def start():
             soldier.health -= number_of_strikes
             if soldier.health <= 0:
                 killed = True
-        if explosion_group.sprite != None:
+        if soldier.health <= 0:
             killed = True
         for event in pygame.event.get():
             # Make new bullets
@@ -223,22 +225,21 @@ def start():
                     bullet_group.add(bullet)
             # Make new bombs
             if (event.type == bomb_event) and begin and (not won) and (not killed):
-                coordinate_x, coordinate_y = generate_bomb_coordinates()
-                sold_y = soldier.rect.center[1]
-                sold_x = soldier.rect.center[0]
-                bomb_angle = math.atan2(
-                    sold_y - coordinate_y,
-                    sold_x - coordinate_x,
-                )
-                bomb = Bomb(
-                    bomb_angle,
-                    coordinate_x,
-                    coordinate_y,
-                    DISPLAYSURF,
-                    sold_x,
-                    sold_y,
-                )
-                # bomb_group.add(bomb)
+                if bomb_iteration == 0:
+                    coordinate_x, coordinate_y = generate_bomb_coordinates()
+                    sold_y = soldier.rect.center[1]
+                    sold_x = soldier.rect.center[0]
+
+                    bomb = Bomb(
+                        coordinate_x,
+                        coordinate_y,
+                        DISPLAYSURF,
+                        sold_x,
+                        sold_y,
+                    )
+                    bomb_group.add(bomb)
+                # else:
+                # bomb_iteration += 1
             if event.type == pygame.QUIT:
                 game = False
             elif event.type == pygame.KEYDOWN:
@@ -419,7 +420,7 @@ def start():
                 particle.emit()
 
         if begin and (not won):
-            explosion_group.update()
+            explosion_group.update(soldier, soldier.location_center())
             bonus_animation_group.update()
             enemy_explosion_group.update()
 
