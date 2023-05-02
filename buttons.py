@@ -119,6 +119,32 @@ def ext_flip_button_green():
     )
 
 
+def ext_random_button_gray():
+    return create_button_center(
+        random_btn_order * (btn_col_width) + (btn_col_width / 2),
+        btn_y,
+        settings_btn_width,
+        settings_btn_height,
+        font,
+        "Random",
+        DISPLAYSURF,
+        BTN_GRAY,
+    )
+
+
+def ext_random_button_green():
+    return create_button_center(
+        random_btn_order * (btn_col_width) + (btn_col_width / 2),
+        btn_y,
+        settings_btn_width,
+        settings_btn_height,
+        font,
+        "Random",
+        DISPLAYSURF,
+        BTN_GREEN,
+    )
+
+
 def ext_restart_button():
     return create_button_center(
         flip_btn_order * (btn_col_width) + (btn_col_width / 2),

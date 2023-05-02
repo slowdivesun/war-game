@@ -83,7 +83,10 @@ class Target(pygame.sprite.Sprite):
         self.image, self.rect = load_image("target.png", -1, 0.1)
         screen = pygame.display.get_surface()
         self.area = screen.get_rect()
-        self.rect.topleft = 445, 210
+        self.rect.topleft = (
+            screen.get_width() - self.image.get_width() - 10,
+            10,
+        )
         self.mask = pygame.mask.from_surface(self.image)
         # NOTE: Draw border around rect
         # pygame.draw.rect(self.image, "red", self.image.get_rect(), 2)
@@ -193,6 +196,7 @@ def start():
     rotate_right_button = None
     menu_button = None
     flip_button = None
+    random_button = None
     back_button = None
     info_button = None
     bomb_iteration = 0
@@ -220,7 +224,7 @@ def start():
                 sold_y = soldier.rect.center[1]
                 sold_x = soldier.rect.center[0]
                 for enemy in enemy_group:
-                    # enemy.random_reorientation(sold_x, sold_y)
+                    enemy.random_reorientation(sold_x, sold_y)
                     bullet = Bullet(enemy)
                     bullet_group.add(bullet)
             # Make new bombs
@@ -292,6 +296,7 @@ def start():
                     flip_button = None
                     back_button = None
                     info_button = None
+                    random_button = None
                 if (restart_button != None) and (
                     restart_button.collidepoint(pygame.mouse.get_pos())
                 ):
@@ -347,6 +352,11 @@ def start():
                     info_button.collidepoint(pygame.mouse.get_pos())
                 ):
                     pass
+                if (random_button != None) and (
+                    random_button.collidepoint(pygame.mouse.get_pos())
+                ):
+                    if selected_enemy != None:
+                        selected_enemy.isRandom = not selected_enemy.isRandom
             elif event.type == pygame.MOUSEBUTTONUP:
                 for enemy in enemy_group:
                     enemy.clicked = False
@@ -429,14 +439,20 @@ def start():
             begin_button = ext_begin_button_gray()
             back_button = ext_back_button()
             info_button = ext_info_button()
+            print(is_selected)
             if is_selected:
                 rotate_left_button = ext_rotate_left_button_gray()
                 rotate_right_button = ext_rotate_right_button_gray()
                 flip_button = ext_flip_button_gray()
+                if selected_enemy.isRandom:
+                    random_button = ext_random_button_gray()
+                else:
+                    random_button = ext_random_button_green()
             else:
                 rotate_left_button = ext_rotate_left_button_green()
                 rotate_right_button = ext_rotate_right_button_green()
                 flip_button = ext_flip_button_green()
+                random_button = ext_random_button_green()
 
         # Display restart button if game has ended
         if won or killed:

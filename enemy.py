@@ -55,22 +55,23 @@ class Enemy(pygame.sprite.Sprite):
         self.rect.topleft = self.left, self.top
 
     def random_reorientation(self, x, y):
-        new_angle = math.atan2(self.rect.center[1] - y, x - self.rect.center[0])
-        new_angle = math.degrees(new_angle)
+        if self.isRandom:
+            new_angle = math.atan2(self.rect.center[1] - y, x - self.rect.center[0])
+            new_angle = math.degrees(new_angle)
 
-        if new_angle >= 90 and new_angle <= 180:
-            self.angle = 180 - new_angle
-            self.image, self.rect = load_image("enemy.png", -1, 0.08, self.angle)
-            self.flip_enemy()
-        if new_angle <= -90 and new_angle >= -180:
-            self.angle = new_angle + 180
-            self.angle *= -1
-            self.image, self.rect = load_image("enemy.png", -1, 0.08, self.angle)
-            self.flip_enemy()
-        else:
-            self.angle = new_angle
-            self.image, self.rect = load_image("enemy.png", -1, 0.08, self.angle)
-        self.rect.topleft = self.left, self.top
+            if new_angle >= 90 and new_angle <= 180:
+                self.angle = 180 - new_angle
+                self.image, self.rect = load_image("enemy.png", -1, 0.08, self.angle)
+                self.flip_enemy()
+            if new_angle <= -90 and new_angle >= -180:
+                self.angle = new_angle + 180
+                self.angle *= -1
+                self.image, self.rect = load_image("enemy.png", -1, 0.08, self.angle)
+                self.flip_enemy()
+            else:
+                self.angle = new_angle
+                self.image, self.rect = load_image("enemy.png", -1, 0.08, self.angle)
+            self.rect.topleft = self.left, self.top
 
     def location(self):
         return self.rect.left, self.rect.top
