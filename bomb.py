@@ -1,11 +1,10 @@
-import pygame, sys
-import os
+import pygame
 from pygame.locals import *
 import math
 from load_image import load_image
 from groups import explosion_group
 import random
-from constants import disp_width, disp_height
+from constants import disp_width, disp_height, explosion_sound
 
 bomb_speed = 0.4
 disp_width = 900
@@ -64,6 +63,7 @@ class Bomb(pygame.sprite.Sprite):
             self.rect.center = center
 
         else:
+            pygame.mixer.Sound.play(explosion_sound)
             new_explosion = Explosion(self.lim_x, self.lim_y)
             explosion_group.add(new_explosion)
             self.kill()

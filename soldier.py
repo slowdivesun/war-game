@@ -1,6 +1,6 @@
 import pygame
 import math
-from constants import DISPLAYSURF, disp_height
+from constants import DISPLAYSURF, disp_height, explosion_sound
 from groups import projectile_group, enemy_explosion_group
 from bomb import Explosion
 from load_image import load_image
@@ -49,6 +49,7 @@ class Projectile(pygame.sprite.Sprite):
             self.kill()
 
     def enemy_explosion(self, x, y):
+        pygame.mixer.Sound.play(explosion_sound)
         new_explosion = Explosion(x, y)
         enemy_explosion_group.add(new_explosion)
         self.kill()

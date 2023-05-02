@@ -1,7 +1,7 @@
 import pygame
+from constants import disp_height, disp_width, DISPLAYSURF, GRAY, WHITE
+from draw_functions import draw_text_middle
 
-disp_width = 900
-disp_height = 600
 
 top_margin = disp_height / 7
 division = disp_height / 7
@@ -474,3 +474,42 @@ class CivilianTargetSlider:
             self.slider_value = 0
 
         return self.slider_value
+
+
+def draw_slider(s):
+    s.draw_bg(DISPLAYSURF)
+    pygame.draw.rect(DISPLAYSURF, GRAY, s.slider_rect)
+    pygame.draw.circle(
+        DISPLAYSURF,
+        "#f9430a",
+        (s.slider_knob_x, s.slider_knob_y),
+        s.slider_knob_radius,
+    )
+    s.draw_text_min(
+        DISPLAYSURF,
+        pygame.font.SysFont("BOLD", 30),
+        GRAY,
+    )
+    s.draw_text_max(
+        DISPLAYSURF,
+        pygame.font.SysFont("BOLD", 30),
+        GRAY,
+    )
+    pygame.draw.circle(
+        DISPLAYSURF,
+        (255, 255, 255),
+        (
+            s.slider_knob_x,
+            s.slider_knob_y - 20 - 1 - slider_row_height * (2 / 5) * (1 / 2),
+        ),
+        20,
+        4,
+    )
+    draw_text_middle(
+        str(s.slider_value),
+        pygame.font.SysFont("Arial", 20),
+        WHITE,
+        s.slider_knob_x,
+        s.slider_knob_y - 20 - 1 - slider_row_height * (2 / 5) * (1 / 2),
+        DISPLAYSURF,
+    )

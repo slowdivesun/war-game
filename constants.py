@@ -37,6 +37,14 @@ emoji_font = pygame.font.SysFont("segoeuisymbol", 30)
 arial_font = pygame.font.SysFont("Arial", 30)
 stats_font = pygame.font.SysFont("couriernew", 20)
 
+# Sound effects
+civilian_sound = pygame.mixer.Sound("./sounds/civilian.wav")
+bonus_sound = pygame.mixer.Sound("./sounds/coin.wav")
+lost_sound = pygame.mixer.Sound("./sounds/gameover.wav")
+won_sound = pygame.mixer.Sound("./sounds/won.wav")
+clink_sound = pygame.mixer.Sound("./sounds/clinking.wav")
+explosion_sound = pygame.mixer.Sound("./sounds/explosion.wav")
+
 
 # top button parameters
 upper_strip = disp_height * 0.15
