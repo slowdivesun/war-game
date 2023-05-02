@@ -1,5 +1,5 @@
 import pygame, sys
-from constants import DISPLAYSURF
+from constants import DISPLAYSURF, disp_height, disp_width
 from pygame.locals import *
 import random
 import numpy as np
@@ -8,41 +8,32 @@ import numpy as np
 class game_env:
     def __init__(self, suffix):
         self.q_table = np.zeros((100, 4))
-        self.reward_map = {
-            "traffic.png": -20,
-            "road.png": -3,
-            "jam.png": -50,
-            "fast.png": 0,
-            "house.png": 500,
-            "man.png": -500,
-            "already_visited": -10,
-            "invalid": -100,
-        }
-        self.dir = {0: "left", 2: "right", 1: "down", 3: "up"}
+        self.reward_map = {"hit": -20, "won": 20}
+        # self.dir = {0: "left", 2: "right", 1: "down", 3: "up"}
         self.alpha = 0.75
         self.beta = 0.75
         self.greedy = 0
         self.random = 1
         self.delta = 0.005
-        self.game_dim = (500, 650)
+        self.game_dim = (disp_width, disp_height)
         self.text_space = 150
         self.initial_cood = (0, 0 + self.text_space)
         self.rows, self.columns = 10, 10
         self.start_state = 0
         self.end_state = 99
-        self.cell_dim = self.game_dim[0] / self.rows
-        self.final_cood = (
-            self.game_dim[0] - self.cell_dim,
-            self.game_dim[1] - self.cell_dim,
-        )
-        self.game_grid = self.new_game_env()
+        # self.cell_dim = self.game_dim[0] / self.rows
+        # self.final_cood = (
+        #     self.game_dim[0] - self.cell_dim,
+        #     self.game_dim[1] - self.cell_dim,
+        # )
+        # self.game_grid = self.new_game_env()
         self.suffix = suffix
-        self.action_space = {
-            0: {"x": -1 * self.cell_dim, "y": 0},
-            2: {"x": self.cell_dim, "y": 0},
-            1: {"x": 0, "y": self.cell_dim},
-            3: {"x": 0, "y": -1 * self.cell_dim},
-        }
+        # self.action_space = {
+        #     0: {"x": -1 * self.cell_dim, "y": 0},
+        #     2: {"x": self.cell_dim, "y": 0},
+        #     1: {"x": 0, "y": self.cell_dim},
+        #     3: {"x": 0, "y": -1 * self.cell_dim},
+        # }
         try:
             with open("env_weights\\weights_{}.npy".format(self.suffix), "rb") as f:
                 self.q_table = np.load(f)
@@ -56,19 +47,19 @@ class game_env:
                 np.save(f, self.q_table)
             pass
 
-    def new_game_env(self):
-        """
-        Create new road environment
-        """
-        matrix = random.choices(
-            ["road.png", "traffic.png", "jam.png", "fast.png"],
-            weights=[0.55, 0.15, 0.15, 0.15],
-            k=self.rows * self.columns,
-        )
-        matrix = np.asarray(matrix).reshape(self.rows, self.columns)
-        matrix[0][0] = "man.png"
-        matrix[self.rows - 1][self.columns - 1] = "house.png"
-        return matrix
+    # def new_game_env(self):
+    #     """
+    #     Create new road environment
+    #     """
+    #     matrix = random.choices(
+    #         ["road.png", "traffic.png", "jam.png", "fast.png"],
+    #         weights=[0.55, 0.15, 0.15, 0.15],
+    #         k=self.rows * self.columns,
+    #     )
+    #     matrix = np.asarray(matrix).reshape(self.rows, self.columns)
+    #     matrix[0][0] = "man.png"
+    #     matrix[self.rows - 1][self.columns - 1] = "house.png"
+    #     return matrix
 
     def image_loader(self, img_path):
         """
@@ -86,18 +77,18 @@ class game_env:
         text_surface = font.render(text, True, (255, 255, 255))
         DISPLAYSURF.blit(text_surface, cood)
 
-    def initial_state(self):
-        """
-        Draw environment on pygame DISPLAYSURF
-        """
-        DISPLAYSURF.fill((0, 0, 0))
-        for x in range(self.rows):
-            for y in range(self.columns):
-                img = self.image_loader(self.game_grid[x][y])
-                cood = (y * self.cell_dim, x * self.cell_dim + self.text_space)
-                DISPLAYSURF.blit(img, cood)
-        self.print_summary("Traffic Turbo", (175, 25), 24)
-        pygame.display.update()
+    # def initial_state(self):
+    #     """
+    #     Draw environment on pygame DISPLAYSURF
+    #     """
+    #     DISPLAYSURF.fill((0, 0, 0))
+    #     for x in range(self.rows):
+    #         for y in range(self.columns):
+    #             img = self.image_loader(self.game_grid[x][y])
+    #             cood = (y * self.cell_dim, x * self.cell_dim + self.text_space)
+    #             DISPLAYSURF.blit(img, cood)
+    #     self.print_summary("Traffic Turbo", (175, 25), 24)
+    #     pygame.display.update()
 
     def steps_visualizer(self, cood):
         """
@@ -147,22 +138,21 @@ class game_env:
         """
         Update Q-Table according to action taken
         """
-        curr_cood = self.state_cood_calc(state)
-        new_cood = (
-            int(curr_cood[0] + self.action_space[action]["x"]),
-            int(curr_cood[1] + self.action_space[action]["y"]),
-        )
-        new_state = self.cood_state_calc(new_cood)
-        is_valid = self.is_valid_move(new_cood, already_visited)
+        # curr_cood = self.state_cood_calc(state)
+        # new_cood = (
+        #     int(curr_cood[0] + self.action_space[action]["x"]),
+        #     int(curr_cood[1] + self.action_space[action]["y"]),
+        # )
+        # new_state = self.cood_state_calc(new_cood)
+        # is_valid = self.is_valid_move(new_cood, already_visited)
 
-        if is_valid:
-            reward = self.reward_map[
-                self.game_grid[int(new_state // self.rows)][int(new_state % self.rows)]
-            ]
-        elif new_cood in already_visited:
-            reward = self.reward_map["already_visited"]
-        else:
-            reward = self.reward_map["invalid"]
+        # if is_valid:
+        act = "hit" if (self.action == 0) else "won"
+        reward = self.reward_map[act]
+        # elif new_cood in already_visited:
+        #     reward = self.reward_map["already_visited"]
+        # else:
+        #     reward = self.reward_map["invalid"]
 
         try:
             state_value_diff = (

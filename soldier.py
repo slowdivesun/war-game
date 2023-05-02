@@ -1,7 +1,8 @@
 import pygame
 import math
 from constants import DISPLAYSURF, disp_height
-from groups import projectile_group
+from groups import projectile_group, enemy_explosion_group
+from bomb import Explosion
 from load_image import load_image
 
 projectile_angle = 45
@@ -46,6 +47,11 @@ class Projectile(pygame.sprite.Sprite):
             self.kill()
         if not DISPLAYSURF.get_rect().contains(self.rect):
             self.kill()
+
+    def enemy_explosion(self, x, y):
+        new_explosion = Explosion(x, y)
+        enemy_explosion_group.add(new_explosion)
+        self.kill()
 
 
 def calculate_new_xy_projectile(vel, angle_radians, time_change):

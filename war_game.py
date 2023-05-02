@@ -19,7 +19,7 @@ from draw_functions import *
 from game_buttons import create_button_func, create_button_center
 from buttons import *
 from load_image import load_image
-from groups import explosion_group, projectile_group
+from groups import explosion_group, projectile_group, enemy_explosion_group
 from game_stats import display_stats
 
 if not pygame.font:
@@ -315,6 +315,7 @@ def start():
                     soldier.restart()
                     bomb_group.empty()
                     explosion_group.empty()
+                    enemy_explosion_group.empty()
                     bullet_group.empty()
                     restart_button = None
                 if (
@@ -343,6 +344,7 @@ def start():
                     killed = False
                     bomb_group.empty()
                     explosion_group.empty()
+                    enemy_explosion_group.empty()
                     bullet_group.empty()
                     new_main_menu()
                 if (back_button != None) and (
@@ -353,6 +355,7 @@ def start():
                     killed = False
                     bomb_group.empty()
                     explosion_group.empty()
+                    enemy_explosion_group.empty()
                     bullet_group.empty()
                 if (info_button != None) and (
                     info_button.collidepoint(pygame.mouse.get_pos())
@@ -390,6 +393,7 @@ def start():
         bullet_group.draw(DISPLAYSURF)
         bomb_group.draw(DISPLAYSURF)
         explosion_group.draw(DISPLAYSURF)
+        enemy_explosion_group.draw(DISPLAYSURF)
         projectile_group.draw(DISPLAYSURF)
 
         # Call Update Function of all Sprites
@@ -409,8 +413,14 @@ def start():
                     civ.incident = True
                 else:
                     civ.incident = False
+            for p in projectile_group:  # enemy explosions
+                for e in pygame.sprite.spritecollide(p, enemy_group, False):
+                    p.enemy_explosion(e.location()[0], e.location()[1])
+                    e.killed()
+
         if begin and (not won):
             explosion_group.update()
+            enemy_explosion_group.update()
 
         # Buttons to start the game and change parameters
         if not begin:

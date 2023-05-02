@@ -90,6 +90,9 @@ class Enemy(pygame.sprite.Sprite):
         # )
         pass
 
+    def killed(self):
+        self.kill()
+
 
 class Bullet(pygame.sprite.Sprite):
     def __init__(

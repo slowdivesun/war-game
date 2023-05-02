@@ -38,7 +38,7 @@ def display_stats():
                 lines.append(line.strip())
                 line = ""
             line += " " + word
-    lines.append(line.strip())
+        lines.append(line.strip())
     clock = pygame.time.Clock()
     index = 0
     j = 0
