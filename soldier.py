@@ -63,13 +63,18 @@ def calculate_new_xy_projectile(vel, angle_radians, time_change):
 
 
 class Soldier(pygame.sprite.Sprite):
-    def __init__(self, soldier_x=10, soldier_y=90):
+    def __init__(self, civ_target=0, bon_target=0, soldier_x=10, soldier_y=90):
         pygame.sprite.Sprite.__init__(self)
         self.image, self.rect = load_image("soldier.png", -1, 0.035)
         screen = pygame.display.get_surface()
         self.area = screen.get_rect()
         self.rect.topleft = 350, 300
-        self.health = 3
+        self.max_health = 10
+        self.health = self.max_health
+        self.civ_target = civ_target
+        self.bon_target = bon_target
+        self.bonus = 0
+        self.civilians = 0
         self.move = 18
         self.right_facing = True
 
@@ -104,6 +109,12 @@ class Soldier(pygame.sprite.Sprite):
 
         self.rect = newpos
 
+    def add_bonus(self):
+        self.bonus += 1
+
+    def add_civlian(self):
+        self.civilians += 1
+
     def throw(self, start_time, vel=projectile_velocity):
         new_proj = Projectile(self, start_time, vel)
         projectile_group.add(new_proj)
@@ -119,7 +130,7 @@ def display_health(sold):
         pygame.Rect(
             sold.rect.center[0] - 3 * 15 / 2,
             sold.rect.topleft[1] - 10,
-            3 * 15,
+            50,
             5,
         ),
     )
@@ -129,7 +140,7 @@ def display_health(sold):
         (
             sold.rect.center[0] - 3 * 15 / 2,
             sold.rect.topleft[1] - 10,
-            (15 * (sold.health)),
+            ((50 / sold.max_health) * (sold.health)),
             5,
         ),
     )

@@ -108,7 +108,7 @@ class BonusSlider:
     )
     slider_min = 0
     slider_max = 5
-    slider_value = 0
+    slider_value = 1
     slider_rect = pygame.Rect(slider_x, slider_y, slider_width, slider_height)
     slider_knob_radius = 8
     slider_knob_x = slider_x + int(

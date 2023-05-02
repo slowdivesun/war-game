@@ -19,7 +19,12 @@ from draw_functions import *
 from game_buttons import create_button_func, create_button_center
 from buttons import *
 from load_image import load_image
-from groups import explosion_group, projectile_group, enemy_explosion_group
+from groups import (
+    explosion_group,
+    projectile_group,
+    enemy_explosion_group,
+    bonus_animation_group,
+)
 from game_stats import display_stats
 
 if not pygame.font:
@@ -49,6 +54,7 @@ civilian_sound = pygame.mixer.Sound("./sounds/civilian.wav")
 bonus_sound = pygame.mixer.Sound("./sounds/coin.wav")
 lost_sound = pygame.mixer.Sound("./sounds/gameover.wav")
 won_sound = pygame.mixer.Sound("./sounds/won.wav")
+clink_sound = pygame.mixer.Sound("./sounds/clinking.wav")
 
 
 # Define Constants
@@ -180,13 +186,14 @@ def start():
     DISPLAYSURF.blit(background, (0, 0))
     pygame.display.flip()
 
-    soldier = Soldier()
-    target = Target()
     enemies = draw_enemies(e_slider.slider_value)
     civilians = draw_civilians(c_slider.slider_value)
     bonuses = draw_bonuses(b_slider.slider_value)
     civilian_target = ct_slider.slider_value
     bonus_target = bt_slider.slider_value
+
+    soldier = Soldier(civilian_target, bonus_target)
+    target = Target()
     soldier_group = pygame.sprite.Group((soldier))
     target_group = pygame.sprite.Group((target))
     enemy_group = pygame.sprite.Group(tuple(enemies))
@@ -294,6 +301,9 @@ def start():
                     for civ in civilian_group:
                         if civ.rect.collidepoint(pos):
                             civ.clicked = True
+                    for bon in bonus_group:
+                        if bon.rect.collidepoint(pos):
+                            bon.clicked = True
                 if (begin_button != None) and (
                     begin_button.collidepoint(pygame.mouse.get_pos())
                 ):
@@ -366,6 +376,8 @@ def start():
                     enemy.clicked = False
                 for civ in civilian_group:
                     civ.clicked = False
+                for bon in bonus_group:
+                    bon.clicked = False
 
         # Move the enemies, civilians and bonuses to desired position
         if not begin:
@@ -375,6 +387,9 @@ def start():
             for civ in civilian_group:
                 if civ.clicked:
                     move_entities(civ, target)
+            for bon in bonus_group:
+                if bon.clicked:
+                    move_entities(bon, target)
 
         # update bomb target coordinates
         for b in bomb_group:
@@ -394,6 +409,7 @@ def start():
         bomb_group.draw(DISPLAYSURF)
         explosion_group.draw(DISPLAYSURF)
         enemy_explosion_group.draw(DISPLAYSURF)
+        bonus_animation_group.draw(DISPLAYSURF)
         projectile_group.draw(DISPLAYSURF)
 
         # Call Update Function of all Sprites
@@ -417,9 +433,15 @@ def start():
                 for e in pygame.sprite.spritecollide(p, enemy_group, False):
                     p.enemy_explosion(e.location()[0], e.location()[1])
                     e.killed()
+            for bon in pygame.sprite.spritecollide(soldier, bonus_group, False):
+                bon.collected()
+                pygame.mixer.Sound.play(clink_sound)
+            for particle in bonus_animation_group:
+                particle.emit()
 
         if begin and (not won):
             explosion_group.update()
+            bonus_animation_group.update()
             enemy_explosion_group.update()
 
         # Buttons to start the game and change parameters
