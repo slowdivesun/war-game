@@ -18,7 +18,10 @@ Civilians (Target) | <ul><li>Cannot move during the gane</li><li>Can be placed f
 
 ## GIFs
 
-![](https://github.com/slowdivesun/war-game/blob/master/gifs/bomb_2.gif)
+<!-- ![](https://github.com/slowdivesun/war-game/blob/master/gifs/bomb_2.gif) -->
+<img src="https://github.com/slowdivesun/war-game/blob/master/gifs/bomb_2.gif" width=50% height=50%>
 *Bomb Randomness and Animation*
 
-![](https://github.com/slowdivesun/war-game/blob/master/gifs/enemy_flip.gif)
+<!-- ![](https://github.com/slowdivesun/war-game/blob/master/gifs/enemy_flip.gif) -->
+<img src="https://github.com/slowdivesun/war-game/blob/master/gifs/enemy_flip.gif" width=50% height=50%>
+*Enemy movements*
