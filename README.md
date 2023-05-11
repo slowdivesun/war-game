@@ -27,6 +27,26 @@ Projectiles | <ul><li>Affected by gravity</li><li>Uniform Speed in x-direction</
 Bonus (Target) | <ul><li>Cannot move during the gane</li><li>Can be placed freely anywhere</li></ul> | Collected by players
 Civilians (Target) | <ul><li>Cannot move during the gane</li><li>Can be placed freely anywhere</li></ul> | Saved by players
 
+## Files
+* Entities
+ * `enemy.py`, `soldier.py`, `bomb.py`, `civilian.py` and `bonus.py`
+ * By changing the parameters of these classes and their methods, you can change things like
+  * speed (for bullets, bomb or player)
+  * algorithm used to calculate health damage
+
+* `constants.py`
+ * Defines constants used throughout the codebase (display width, height, colors, button sizes etc.)
+
+* `sliders.py`
+ * Defines appearance of the sliders on settings screen
+
+* Buttons
+ * `buttons.py`, `game_buttons.py`
+ * Functions used to display buttons
+
+* `load_image.py`
+ * A function written to load image, given the file path and transform parameters (scale and angle).
+
 
 ## GIFs
 
