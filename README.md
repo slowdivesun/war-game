@@ -30,7 +30,7 @@ Civilians (Target) | <ul><li>Cannot move during the gane</li><li>Can be placed f
 ## Files
 * Entities
   * `enemy.py`, `soldier.py`, `bomb.py`, `civilian.py` and `bonus.py`
-    * By changing the parameters of these classes and their methods, you can change things like
+  * By changing the parameters of these classes and their methods, you can change things like
     * speed (for bullets, bomb or player)
     * algorithm used to calculate health damage
 
