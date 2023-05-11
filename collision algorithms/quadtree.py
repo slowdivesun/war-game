@@ -1,29 +1,4 @@
 class QuadTree(object):
-    """An implementation of a quad-tree.
-
-    This QuadTree started life as a version of [1] but found a life of its own
-    when I realised it wasn't doing what I needed. It is intended for static
-    geometry, ie, items such as the landscape that don't move.
-
-    This implementation inserts items at the current level if they overlap all
-    4 sub-quadrants, otherwise it inserts them recursively into the one or two
-    sub-quadrants that they overlap.
-
-    Items being stored in the tree must possess the following attributes:
-
-        left - the x coordinate of the left edge of the item's bounding box.
-        top - the y coordinate of the top edge of the item's bounding box.
-        right - the x coordinate of the right edge of the item's bounding box.
-        bottom - the y coordinate of the bottom edge of the item's bounding box.
-
-        where left < right and top < bottom
-
-    ...and they must be hashable.
-
-    Acknowledgements:
-    [1] http://mu.arete.cc/pcr/syntax/quadtree/1/quadtree.py
-    """
-
     def __init__(self, items, depth=8, bounding_rect=None):
         """Creates a quad-tree.
 
