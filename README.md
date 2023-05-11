@@ -1,8 +1,20 @@
 # War Game
 
 ## How to Run
+Execute the file named `war_game.py`. 
 
 ## The Game
+* You, as the player, have to 
+  * collect rewards.
+  * dodge bomb and enemy bullets
+  * Rescue civilians
+  * Reach the base
+
+* You as a commander
+  * Change the parameters
+  * Save parameters for repeated use
+  * Keep track during the game through textual feedback and audio effects
+  * Assess performance
 
 ## Entities
 
